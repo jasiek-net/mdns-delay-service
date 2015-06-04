@@ -16,7 +16,7 @@
 #include "threads.h"
 
 #define SRV_IP "localhost"
-#define SRV_PORT 3382
+#define SRV_PORT 10001
 
 
 uint64_t gettime() {
@@ -38,6 +38,10 @@ void *udp_client (void *arg) {
   if (sock < 0) syserr("socket");
 
   uint64_t tab[2];
+  int len = sizeof(tab);
+  struct sockaddr_in my_address;
+  socklen_t rcva_len = (socklen_t) sizeof(my_address);
+  ssize_t snd_len;
 
   while(1) {
     if (pthread_rwlock_rdlock(&s->lock) != 0) syserr("pthread_rwlock_rdlock error");
@@ -46,8 +50,8 @@ void *udp_client (void *arg) {
     stack_print(&s->head);
     tab[0] = htobe64( gettime() );
     while(ptr) {
-      int len = sendto(sock, tab, sizeof(tab), 0, (struct sockaddr *) &ptr->data, (socklen_t) sizeof(&ptr->data));
-      if (len != sizeof(tab)) syserr("partial / failed write");
+      snd_len = sendto(sock, tab, len, 0, (struct sockaddr *) &ptr->data, rcva_len);
+      if (snd_len != len) syserr("partial / failed write");
       printf("wysłano do: ");
       print_ip_port(ptr->data);
       ptr = ptr->next;
@@ -59,9 +63,10 @@ void *udp_client (void *arg) {
     sleep(1);
   }
 
-  if (close(sock) == -1) syserr("close");
+  if (close(sock) == -1) { //very rare errors can occur here, but then
+    syserr("close"); //it's healthy to do the check
+  };
 
-  return 0;
 }
 
 void *udp_server(void *arg) {
@@ -110,14 +115,13 @@ void *udp_server(void *arg) {
 
 
 
-
 // int create_socket() {
 //   struct addrinfo addr_hints;
 //   struct addrinfo *addr_result;
 //   uint64_t start, end;
 
 //   int flags;
-//   struct sockaddr_in my_address, address;
+//   struct sockaddr_in my_address, srvr_address;
 //   ssize_t snd_len, rcv_len, len;
 //   socklen_t rcva_len;
 //   uint64_t tab[2];
