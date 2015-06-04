@@ -16,7 +16,7 @@
 #include "threads.h"
 
 #define SRV_IP "localhost"
-#define SRV_PORT 10001
+#define SRV_PORT 3382
 
 
 uint64_t gettime() {
@@ -35,49 +35,77 @@ void *udp_client (void *arg) {
   struct stuff *s = (struct stuff *)arg;
 
   int sock = socket(PF_INET, SOCK_DGRAM, 0);
-  if (sock < 0)
-    syserr("socket");
+  if (sock < 0) syserr("socket");
 
-  uint64_t tab[2], start;
-  start = gettime();
-  tab[0] = htobe64(start);
-  int len = sizeof(tab);
-  struct sockaddr_in my_address;
-  socklen_t rcva_len = (socklen_t) sizeof(my_address);
-  ssize_t snd_len;
+  uint64_t tab[2];
 
   while(1) {
-    if (pthread_rwlock_rdlock(&s->lock) != 0) {
-        perror("reader_thread: pthread_rwlock_rdlock error");
-        exit(__LINE__);
-    }
+    if (pthread_rwlock_rdlock(&s->lock) != 0) syserr("pthread_rwlock_rdlock error");
 
     Node *ptr = s->head;
-    printf("jestem: ");
     stack_print(&s->head);
-    char buf[14];
-    strcpy(buf, "hello");
-    len = sizeof(buf);
+    tab[0] = htobe64( gettime() );
     while(ptr) {
-      snd_len = sendto(sock, buf, len, 0, (struct sockaddr *) &ptr->data, rcva_len);
-      if (snd_len != len)
-        syserr("partial / failed write");
+      int len = sendto(sock, tab, sizeof(tab), 0, (struct sockaddr *) &ptr->data, (socklen_t) sizeof(&ptr->data));
+      if (len != sizeof(tab)) syserr("partial / failed write");
       printf("wysłano do: ");
       print_ip_port(ptr->data);
       ptr = ptr->next;
     }
-    if (pthread_rwlock_unlock(&s->lock) != 0) {
-        perror("reader thread: pthred_rwlock_unlock error");
-        exit(__LINE__);
-    }
+
+    if (pthread_rwlock_unlock(&s->lock) != 0) syserr("pthred_rwlock_unlock error");
+
     printf("śpię...\n");
     sleep(1);
   }
 
-    if (close(sock) == -1) { //very rare errors can occur here, but then
-      syserr("close"); //it's healthy to do the check
-    };
+  if (close(sock) == -1) syserr("close");
 
+  return 0;
+}
+
+void *udp_server(void *arg) {
+  int port = *(int *) arg;
+  free(arg);
+  
+  int sock, flags;
+  struct sockaddr_in server_address, client_address;
+  socklen_t snda_len, rcva_len;
+  ssize_t len, snd_len;
+  uint64_t tab[2];
+  
+  sock = socket(AF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
+  if (sock < 0) syserr("socket");
+  // after socket() call; we should close(sock) on any execution path;
+  // since all execution paths exit immediately, sock would be closed when program terminates
+
+  server_address.sin_family = AF_INET; // IPv4
+  server_address.sin_addr.s_addr = htonl(INADDR_ANY); // listening on all interfaces
+  server_address.sin_port = htons(port); // port for receiving from command line
+
+  // bind the socket to a concrete address
+  if (bind(sock, (struct sockaddr *) &server_address,
+      (socklen_t) sizeof(server_address)) < 0)
+    syserr("bind");
+  
+  snda_len = (socklen_t) sizeof(client_address);
+  rcva_len = (socklen_t) sizeof(client_address);
+  flags = 0; // we do not request anything special
+
+  while(1) {
+  len = recvfrom(sock, tab, sizeof(tab), flags, (struct sockaddr *) &client_address, &rcva_len);
+  if (len < 0) syserr("error on datagram from client socket");
+  else {
+    printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
+    len = sizeof(tab);
+    tab[1] = htobe64(gettime());
+    snd_len = sendto(sock, tab, (size_t) len, flags, (struct sockaddr *) &client_address, snda_len);
+    if (snd_len != len)
+      syserr("error on sending datagram to client socket");
+    printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
+  }
+  }  
+  return 0;
 }
 
 
@@ -89,7 +117,7 @@ void *udp_client (void *arg) {
 //   uint64_t start, end;
 
 //   int flags;
-//   struct sockaddr_in my_address, srvr_address;
+//   struct sockaddr_in my_address, address;
 //   ssize_t snd_len, rcv_len, len;
 //   socklen_t rcva_len;
 //   uint64_t tab[2];

@@ -56,6 +56,7 @@ void *mdns(void * arg) {
           exit(__LINE__);
       }
   }
+
   stack_clear(&s->head);
   return 0;
 }

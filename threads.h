@@ -7,7 +7,8 @@
 extern void *mdns(void * arg);
 extern uint64_t gettime();
 extern void print_ip_port(struct sockaddr_in sa);
-extern void *udp_client (void *arg);
+extern void *udp_client(void *arg);
+extern void *udp_server(void *arg);
 
 #endif
 

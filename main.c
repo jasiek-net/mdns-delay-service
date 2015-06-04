@@ -27,12 +27,19 @@ int main(int argc, char *argv[]) {
   struct stuff s;
   s.head = NULL;
   if (pthread_rwlock_init(&s.lock, NULL) != 0) syserr("pthread_rwlock_init");
+  int *udp_srv_port;
+  udp_srv_port = malloc(sizeof(int));
+  *udp_srv_port = 3382;
+
+  pthread_t udp_server_t;
+  if (pthread_create(&udp_server_t, 0, udp_server, udp_srv_port) != 0) syserr("pthread_create");
 
   pthread_t mdns_t;
-  if (pthread_create(&mdns_t, 0, mdns, &s) != 0) syserr("pthread_create error");
+  if (pthread_create(&mdns_t, 0, mdns, &s) != 0) syserr("pthread_create");
 
   pthread_t udp_client_t;
-  if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) syserr("pthread_create error");
+  if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) syserr("pthread_create");
+
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {

@@ -189,7 +189,7 @@ RECIEVE
 WSPÓLNIE:
 - czy nabijanie co sekundę ma być takie same dla wszystkich czy każdy sam jak może to sobie tę sekundę nabija?
 - czy implementacja listowa tych wszystkich klientów jest efektywna? raczej niet...
-- 
+- ma być error gdy jest != 0, < 0, == -1 czy kurwa kiedy?
 
 
 ORGANIZACJA KODU:
@@ -204,3 +204,5 @@ zobaczyć jak to wygląda dla err.o
 
 plik header - ma tylko deklaracja pojawiających się funkcji i zmiennych:
 Also, as mentioned before, if the implementation file needs some other headers, so be it, and it is entirely normal for some extra headers to be necessary. But the implementation file ('magicsort.c') should include them itself, and not rely on its header to include them. The header should only include what users of the software need; not what the implementers need.
+
+
