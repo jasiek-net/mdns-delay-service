@@ -117,7 +117,7 @@ void *udp_client_receive(void *arg) {
 
       if (pthread_rwlock_wrlock(&s->lock) != 0) syserr("pthread_rwlock_wrlock error");
 		
-        add_measurement(&s->head, &addr, "udp", (int) end - tab[0]);
+        add_measurement(&s->head, &addr, "udp", (int) (end - tab[0]));
 
         printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
         printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
