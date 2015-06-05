@@ -4,7 +4,7 @@ LFLAGS	= -Wall
 
 TARGET = main
 
-DEPT = err.o linkedlist.o mdns.o udp_client.o
+DEPT = err.o linkedlist.o mdns.o udp_client.o udp_server.o
 
 all: $(TARGET)
 
@@ -15,7 +15,7 @@ main: main.o $(DEPT)
 	$(CC) $(LFLAGS) $^ -o $@ -lpthread
 	rm -f *.o
 
-udp: udp_server.o err.o err.h
+udp: udp_server_test.o err.o err.h
 	$(CC) $(LFLAGS) $^ -o $@
 
 .PHONY: clean all

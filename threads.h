@@ -19,10 +19,14 @@ extern void *udp_server(void *arg);
 #include <netinet/in.h>
 #include <pthread.h>
 
-typedef struct sockaddr_in stack_data; //stack data type - set for integers, modifiable
+struct host_data {
+    struct sockaddr_in addr;
+
+};
+typedef struct host_data stack_data; //stack data type - set for integers, modifiable
 typedef struct stack Node; //short name for the stack type
 struct stack { //stack structure format
-    stack_data data;
+    stack_data host;
     Node *next;
 };
 
@@ -31,13 +35,14 @@ struct stuff {
   Node *head; //pointer to stack head
 };
 
-extern int stack_len(Node *node_head); //stack length
-extern void stack_push(Node **node_head, stack_data d); //pushes a value d onto the stack
-extern stack_data stack_pop(Node **node_head); //removes the head from the stack & returns its value
-extern void stack_print(Node **node_head); //prints all the stack data
-extern void stack_clear(Node **node_head); //clears the stack of all elements
-extern void stack_snoc(Node **node_head, stack_data d); //appends a node
-// extern int stack_elem(Node **node_head, stack_data d); //checks for an element
+int stack_len(Node *node_head); //stack length
+void stack_push(Node **node_head, struct sockaddr_in addr); //pushes a value d onto the stack
+stack_data stack_pop(Node **node_head); //removes the head from the stack & returns its value
+void stack_print(Node **node_head); //prints all the stack data
+void stack_clear(Node **node_head); //clears the stack of all elements
+//void stack_snoc(Node **node_head, stack_data d); //appends a node
+stack_data *stack_elem(Node **node_head, struct sockaddr *sa); //checks for an element
+ 
 
 #endif
 
