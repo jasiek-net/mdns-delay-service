@@ -1,12 +1,18 @@
+
 /* THREADS.C and some helpful function */
 #ifndef THREADS_H
 #define THREADS_H
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdint.h>
 
 #define UDP_SRV_PORT 3382
 
 extern void *mdns(void * arg);
 extern uint64_t gettime();
-extern void print_ip_port(struct sockaddr_in sa);
+extern void print_ip_port(struct sockaddr sa);
 extern void *udp_client(void *arg);
 extern void *udp_server(void *arg);
 
@@ -20,9 +26,13 @@ extern void *udp_server(void *arg);
 #include <pthread.h>
 
 struct host_data {
-    struct sockaddr_in addr;
-
+    struct sockaddr addr;
+	int udp[10],
+		tcp[10],
+		icm[10],
+		u, t, i;
 };
+
 typedef struct host_data stack_data; //stack data type - set for integers, modifiable
 typedef struct stack Node; //short name for the stack type
 struct stack { //stack structure format
@@ -36,13 +46,13 @@ struct stuff {
 };
 
 int stack_len(Node *node_head); //stack length
-void stack_push(Node **node_head, struct sockaddr_in addr); //pushes a value d onto the stack
+void stack_push(Node **node_head, struct sockaddr addr); //pushes a value d onto the stack
 stack_data stack_pop(Node **node_head); //removes the head from the stack & returns its value
 void stack_print(Node **node_head); //prints all the stack data
 void stack_clear(Node **node_head); //clears the stack of all elements
 //void stack_snoc(Node **node_head, stack_data d); //appends a node
-stack_data *stack_elem(Node **node_head, struct sockaddr *sa); //checks for an element
- 
+int stack_elem(Node **node_head, struct sockaddr *sa); //checks for an element
+int add_measurement(Node **node_head, struct sockaddr *sa, char *type, int result);
 
 #endif
 

@@ -18,6 +18,11 @@
 #define SRV_IP "localhost"
 #define SRV_PORT 10001
 
+void print_ip_port(struct sockaddr sa) {
+	(void) printf("%s", inet_ntoa(((struct sockaddr_in *) &sa)->sin_addr));
+	(void) printf(":");
+	(void) printf("%d -> ", ntohs(((struct sockaddr_in *) &sa)->sin_port));
+}
 
 uint64_t gettime() {
   struct timeval tv;
@@ -25,11 +30,6 @@ uint64_t gettime() {
   return tv.tv_sec*1000000ull+tv.tv_usec;
 }
 
-void print_ip_port(struct sockaddr_in sa) {
-  (void) printf("%s", inet_ntoa(sa.sin_addr));
-  (void) printf(":");
-  (void) printf("%d\n", ntohs(sa.sin_port));
-}
 
 struct udp_struct {
   struct stuff *s;
@@ -46,15 +46,15 @@ void *udp_client (void *arg) {
 
   uint64_t tab[2];
   int len = sizeof(tab);
-  struct sockaddr_in addr;
+  struct sockaddr addr;
   socklen_t rcva_len = (socklen_t) sizeof(addr);
   ssize_t snd_len;
 
-  addr.sin_family = AF_INET; // IPv4
-  addr.sin_addr.s_addr = htonl(INADDR_ANY); // address IP
-  addr.sin_port = 0; // Port
+  ((struct sockaddr_in *) &addr)->sin_family = AF_INET; // IPv4
+  ((struct sockaddr_in *) &addr)->sin_addr.s_addr = htonl(INADDR_ANY); // address IP
+  ((struct sockaddr_in *) &addr)->sin_port = 0; // Port
 
-  if (bind(sock, (struct sockaddr *) &addr, rcva_len) < 0) syserr("bind");
+  if (bind(sock, &addr, rcva_len) < 0) syserr("bind");
 
   struct udp_struct rcv;
   rcv.s = s;
@@ -71,7 +71,10 @@ void *udp_client (void *arg) {
     stack_print(&s->head);
     tab[0] = htobe64( gettime() );
     while(ptr) {
-      snd_len = sendto(sock, tab, len, 0, (struct sockaddr *) &ptr->host.addr, rcva_len);
+		printf("TYLKO TO MNIE OBCHODZI: ");
+		print_ip_port(ptr->host.addr);
+
+      snd_len = sendto(sock, tab, len, 0, &ptr->host.addr, rcva_len);
       if (snd_len != len) syserr("partial / failed write");
       printf("wysłano do: ");
       print_ip_port(ptr->host.addr);
@@ -97,7 +100,7 @@ void *udp_client_receive(void *arg) {
   free(rcv->b);
   
   int flags = 0;
-  struct sockaddr_in addr;
+  struct sockaddr addr;
   socklen_t rcva_len;
   ssize_t len;
   uint64_t tab[2], end;
@@ -113,6 +116,8 @@ void *udp_client_receive(void *arg) {
       print_ip_port(addr);
 
       if (pthread_rwlock_wrlock(&s->lock) != 0) syserr("pthread_rwlock_wrlock error");
+		
+        add_measurement(&s->head, &addr, "udp", (int) end - tab[0]);
 
         printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
         printf("send time: %" PRIu64 "\n", be64toh(tab[1]));

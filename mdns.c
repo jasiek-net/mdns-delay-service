@@ -16,8 +16,8 @@ void *mdns(void * arg) {
   int port = 10001;
 
   int sock;
-  struct sockaddr_in srvr_addr;
-  struct sockaddr_in clin_addr;
+  struct sockaddr srvr_addr;
+  struct sockaddr clin_addr;
 
   socklen_t rcva_len;
 
@@ -27,12 +27,12 @@ void *mdns(void * arg) {
   // after socket() call; we should close(sock) on any execution path;
   // since all execution paths exit immediately, sock would be closed when program terminates
 
-  srvr_addr.sin_family = AF_INET; // IPv4
-  srvr_addr.sin_addr.s_addr = htonl(INADDR_ANY); // listening on all interfaces
-  srvr_addr.sin_port = htons(port); // default port for receiving is PORT_NUM
+  ((struct sockaddr_in *) &srvr_addr)->sin_family = AF_INET; // IPv4
+  ((struct sockaddr_in *) &srvr_addr)->sin_addr.s_addr = htonl(INADDR_ANY); // listening on all interfaces
+  ((struct sockaddr_in *) &srvr_addr)->sin_port = htons(port); // default port for receiving is PORT_NUM
 
   // bind the socket to a concrete address
-  if (bind(sock, (struct sockaddr *) &srvr_addr, (socklen_t) sizeof(srvr_addr)) < 0)
+  if (bind(sock, &srvr_addr, (socklen_t) sizeof(srvr_addr)) < 0)
     syserr("bind");
 
   printf("Listen on: ");
@@ -41,7 +41,7 @@ void *mdns(void * arg) {
 
   for (;;) {
     rcva_len = (socklen_t) sizeof(clin_addr);
-    recvfrom(sock, (char *)NULL, (size_t)NULL, 0, (struct sockaddr *) &clin_addr, &rcva_len);
+    recvfrom(sock, (char *)NULL, (size_t)NULL, 0, &clin_addr, &rcva_len);
     if (pthread_rwlock_wrlock(&s->lock) != 0) {
           perror("writer thread: pthread_rwlock_wrlock error");
           exit(__LINE__);
