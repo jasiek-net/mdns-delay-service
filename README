@@ -149,6 +149,27 @@ mDNS:
 - i pytanie 
 
 
+-------------------------------
+TCP
+-------------------------------
+http://www.scottklement.com/rpg/socktut/nonblocking.html
+The connect() API is a little different. If you try to call connect() in non-blocking mode, and the API can't connect instantly, it will return the error code for 'Operation In Progress'. When you call connect() again, later, it may tell you 'Operation Already In Progress' to let you know that it's still trying to connect, or it may give you a successful return code, telling you that the connect has been made.
+
+http://stackoverflow.com/questions/4181784/how-to-set-socket-timeout-in-c-when-making-multiple-connections
+
+http://stackoverflow.com/questions/489036/how-does-the-socket-api-accept-function-work
+
+
+pomysły na rozwiązania:
+POLL:
+1. Wywołać nieblokującego connecta na wszystkich adresach
+2. Nasłuchiwać w poll na odpowiedni
+  - pytanie czy poll zareaguje na odpowiedni handshake?
+
+DWA WĄTKI:
+1. Wysyła nieblokujące connecty do listy addr
+2. Libevent w pętli odbiera pakiety
+  - problem: czy można wywołać connect na sockecie na którym wcześniej był listen?
 
 -------------------------------
 UDP
@@ -209,3 +230,4 @@ Also, as mentioned before, if the implementation file needs some other headers, 
 
 TODO:
 - wszędzie pozmieniać sockaddr z sockaddr_in - w ogóle po chuj się to tak deklaruje skoro wszędzie się używa sockaddr!?
+- przenieść logikę rw_locka do linkedlisty! i pozbyć się tego kodu wątków!

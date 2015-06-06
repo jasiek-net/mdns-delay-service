@@ -15,31 +15,29 @@
 
 #include "threads.h"
 
-void create_thread(pthread_t t, void *(* func)(void *), struct stuff s) {
-  if (pthread_create(&t, 0, func, &s) != 0) {
-    perror("pthread_create error");
-    exit (__LINE__);
-  }
-  pthread_detach(t);
-}
-
 int main(int argc, char *argv[]) {
-  struct stuff s;
-  s.head = NULL;
-  if (pthread_rwlock_init(&s.lock, NULL) != 0) syserr("pthread_rwlock_init");
+  if (pthread_rwlock_init(&lock, NULL) != 0) syserr("pthread_rwlock_init");
+  head = NULL;
+
   int *udp_srv_port;
   udp_srv_port = malloc(sizeof(int));
   *udp_srv_port = 3382;
 
-  pthread_t udp_server_t;
-  if (pthread_create(&udp_server_t, 0, udp_server, udp_srv_port) != 0) syserr("pthread_create");
+  // pthread_t udp_server_t;
+  // if (pthread_create(&udp_server_t, 0, udp_server, udp_srv_port) != 0) syserr("pthread_create");
 
-  pthread_t mdns_t;
-  if (pthread_create(&mdns_t, 0, mdns, &s) != 0) syserr("pthread_create");
+  int sec = 2;
+  pthread_t m_dns_t;
+  if (pthread_create(&m_dns_t, 0, m_dns, &sec) != 0) syserr("pthread_create");
 
-  pthread_t udp_client_t;
-  if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) syserr("pthread_create");
+//  pthread_t mdns_t;
+//  if (pthread_create(&mdns_t, 0, mdns, head) != 0) syserr("pthread_create");
 
+  // pthread_t udp_client_t;
+  // if (pthread_create(&udp_client_t, 0, udp_client, head) != 0) syserr("pthread_create");
+
+  // pthread_t tcp_client_t;
+  // if (pthread_create(&tcp_client_t, 0, tcp_client, head) != 0) syserr("pthread_create");
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {
@@ -52,6 +50,6 @@ int main(int argc, char *argv[]) {
 
   // create_thread(mdns_t, mdns);
   // create_thread(udp_client_t, udp_client);
-  pthread_join(mdns_t, NULL);
+  pthread_join(m_dns_t, NULL);
   return 0;
 }

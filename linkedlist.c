@@ -7,30 +7,35 @@
 
 #include "threads.h"
 
-int stack_len(Node *node_head) {
-    Node *curr = node_head;
-    int len = 0;
-     
-    while(curr) {
+int stack_len() {
+    if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
+
+    Node *p = head;
+    int len = 0;     
+    while(p) {
         ++len;
-        curr = curr -> next;
+        p = p->next;
     }
+
+    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
     return len;
 }
 
-void init_host(struct host_data h, struct sockaddr addr) {
+void init_host(struct host_data * h, struct sockaddr addr) {
+	(*h).addr = addr;
+	(*h).u = (*h).t = (*h).i = 0;
+	memset((*h).udp, 0, sizeof((*h).udp));
+	memset((*h).tcp, 0, sizeof((*h).tcp));
+	memset((*h).icm, 0, sizeof((*h).icm));
 } 
 
-void stack_push(Node **node_head, struct sockaddr addr) {
-    Node *node_new = malloc(sizeof(Node));
-
-	node_new->host.addr = addr;
-	node_new->host.u = node_new->host.t = node_new->host.i = 0;
-	memset(node_new->host.udp, 0, sizeof(node_new->host.udp));
-	memset(node_new->host.tcp, 0, sizeof(node_new->host.tcp));
-	memset(node_new->host.icm, 0, sizeof(node_new->host.icm));
-    node_new -> next = *node_head;
-    *node_head = node_new;
+void stack_push(struct sockaddr addr) {
+    Node *new = malloc(sizeof(Node));
+    init_host(&(new->host), addr);
+	if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
+    new -> next = head;
+    head = new;
+    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthread_rwlock_unlock error");
 }
  
 stack_data stack_pop(Node **node_head) {
@@ -45,58 +50,55 @@ stack_data stack_pop(Node **node_head) {
     return d;
 }
  
-void stack_print(Node **node_head) {
-    Node *ptr = *node_head;
-     
-    if(!ptr)
-        puts("the stack is empty");
+void stack_print() {
+    if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
+
+    Node *p = head;
+    if(!p) printf("the stack is empty");
     else {
-        while(ptr) {
-			print_ip_port(ptr->host.addr);
-            ptr = ptr -> next;
+        while(p) {
+            (void) printf("%s", inet_ntoa(((struct sockaddr_in *) &p->host.addr)->sin_addr));
+			(void) printf(":");
+			(void) printf("%d -> ", ntohs(((struct sockaddr_in *) &p->host.addr)->sin_port));
+            p = p -> next;
         }
-        putchar('\n');
     }
+    printf("\n");
+
+    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
  
 void stack_clear(Node **node_head) {
     while(*node_head)
         stack_pop(node_head);
 }
+int stack_elem(struct sockaddr *sa) {
+    if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
  
-// void stack_snoc(Node **node_head, stack_data d) {
-//     Node *ptr = *node_head;
+    Node *p = head;
      
-//     if(!ptr) stack_push(node_head, d);
-//     else {
-//         //find the last node
-//         while(ptr -> next)
-//             ptr = ptr -> next;
-//         //build the node after it
-//         stack_push(&(ptr -> next), d);
-//     }
-// }
-
-int stack_elem(Node **node_head, struct sockaddr *sa) {
-    Node *ptr = *node_head;
-     
-    while(ptr) {
-        if(strcmp(((struct sockaddr *) sa)->sa_data,  ((struct sockaddr *) &ptr->host.addr)->sa_data)) //set for numbers, modifiable
-            ptr = ptr->next;
+    while(p) {
+        if(strcmp(sa->sa_data, p->host.addr.sa_data)) //set for numbers, modifiable
+            p = p->next;
         else {
             return 1;
         }
     }
     return 0;
+
+   if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
 
-int add_measurement(Node **node_head, struct sockaddr *sa, char *type, int result) {
-    Node *p = *node_head;
-    
+void add_measurement(struct sockaddr *sa, char *type, int result) {
+
+	if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
+
+    Node *p = head;    
     while(p) {
         if(strcmp(sa->sa_data, p->host.addr.sa_data)) //set for numbers, modifiable
             p = p->next;
         else {
+			
 			if (!strcmp("udp", type)) {
 				printf("pomiar: %d, wynik: %d\n", p->host.u, result); 
 				p->host.udp[ p->host.u ] = result;
@@ -108,8 +110,11 @@ int add_measurement(Node **node_head, struct sockaddr *sa, char *type, int resul
 				p->host.icm[ p->host.i ] = result;
 				p->host.i = (p->host.i+1)%10;
 			}
-			return 1;
+						
+			p = NULL;
         }
     }
-    return 0;
+    
+	if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
+

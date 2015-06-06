@@ -21,7 +21,7 @@
 void print_ip_port(struct sockaddr sa) {
 	(void) printf("%s", inet_ntoa(((struct sockaddr_in *) &sa)->sin_addr));
 	(void) printf(":");
-	(void) printf("%d -> ", ntohs(((struct sockaddr_in *) &sa)->sin_port));
+	(void) printf("%d\n", ntohs(((struct sockaddr_in *) &sa)->sin_port));
 }
 
 uint64_t gettime() {
@@ -39,7 +39,6 @@ struct udp_struct {
 void *udp_client_receive(void *arg);
 
 void *udp_client (void *arg) {
-  struct stuff *s = (struct stuff *)arg;
 
   int sock = socket(PF_INET, SOCK_DGRAM, 0);
   if (sock < 0) syserr("socket");
@@ -56,32 +55,24 @@ void *udp_client (void *arg) {
 
   if (bind(sock, &addr, rcva_len) < 0) syserr("bind");
 
-  struct udp_struct rcv;
-  rcv.s = s;
-  rcv.b = malloc(sizeof(int));
-  *rcv.b = sock;
   pthread_t udp_client_receive_t;
-  if (pthread_create(&udp_client_receive_t, 0, udp_client_receive, &rcv) != 0) syserr("pthread_create");
-
+  if (pthread_create(&udp_client_receive_t, 0, udp_client_receive, &sock) != 0) syserr("pthread_create");
 
   while(1) {
-    if (pthread_rwlock_rdlock(&s->lock) != 0) syserr("pthread_rwlock_rdlock error");
+    if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
 
-    Node *ptr = s->head;
-    stack_print(&s->head);
+    Node *p = head;
+    stack_print(&head);
     tab[0] = htobe64( gettime() );
-    while(ptr) {
-		printf("TYLKO TO MNIE OBCHODZI: ");
-		print_ip_port(ptr->host.addr);
-
-      snd_len = sendto(sock, tab, len, 0, &ptr->host.addr, rcva_len);
+    while(p) {
+      snd_len = sendto(sock, tab, len, 0, &p->host.addr, rcva_len);
       if (snd_len != len) syserr("partial / failed write");
       printf("wysłano do: ");
-      print_ip_port(ptr->host.addr);
-      ptr = ptr->next;
+      print_ip_port(p->host.addr);
+      p = p->next;
     }
 
-    if (pthread_rwlock_unlock(&s->lock) != 0) syserr("pthred_rwlock_unlock error");
+    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 
     printf("śpię...\n");
     sleep(1);
@@ -94,10 +85,7 @@ void *udp_client (void *arg) {
 }
 
 void *udp_client_receive(void *arg) {
-  struct udp_struct *rcv = (struct udp_struct *) arg;
-  struct stuff *s = rcv->s;
-  int sock = *(int *) rcv->b;
-  free(rcv->b);
+  int sock = *(int *) arg;
   
   int flags = 0;
   struct sockaddr addr;
@@ -108,21 +96,17 @@ void *udp_client_receive(void *arg) {
   rcva_len = (socklen_t) sizeof(addr);
 
   while(1) {
-    len = recvfrom(sock, tab, sizeof(tab), flags, (struct sockaddr *) &addr, &rcva_len);    
+    len = recvfrom(sock, tab, sizeof(tab), flags, &addr, &rcva_len);    
     if (len < 0) syserr("error on datagram from client socket");
     else {
       end = gettime();
       printf("odebrano od: ");
       print_ip_port(addr);
 
-      if (pthread_rwlock_wrlock(&s->lock) != 0) syserr("pthread_rwlock_wrlock error");
-		
-        add_measurement(&s->head, &addr, "udp", (int) (end - tab[0]));
+		add_measurement(&addr, "udp", (int) (end - be64toh(tab[0])));
 
-        printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
-        printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
-
-      if (pthread_rwlock_unlock(&s->lock) != 0) syserr("pthred_rwlock_unlock error");
+		printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
+		printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
 
     }
   }  

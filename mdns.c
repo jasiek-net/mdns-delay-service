@@ -11,8 +11,7 @@
 
 #include "threads.h"
 
-void *mdns(void * arg) {  
-  struct stuff *s = (struct stuff *)arg;
+void *mdns(void * arg) {
   int port = 10001;
 
   int sock;
@@ -22,41 +21,28 @@ void *mdns(void * arg) {
   socklen_t rcva_len;
 
   sock = socket(AF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
-  if (sock < 0)
-    syserr("socket");
-  // after socket() call; we should close(sock) on any execution path;
-  // since all execution paths exit immediately, sock would be closed when program terminates
+  if (sock < 0) syserr("socket");
 
   ((struct sockaddr_in *) &srvr_addr)->sin_family = AF_INET; // IPv4
   ((struct sockaddr_in *) &srvr_addr)->sin_addr.s_addr = htonl(INADDR_ANY); // listening on all interfaces
   ((struct sockaddr_in *) &srvr_addr)->sin_port = htons(port); // default port for receiving is PORT_NUM
 
-  // bind the socket to a concrete address
-  if (bind(sock, &srvr_addr, (socklen_t) sizeof(srvr_addr)) < 0)
-    syserr("bind");
+  if (bind(sock, &srvr_addr, (socklen_t) sizeof(srvr_addr)) < 0) syserr("bind");
 
   printf("Listen on: ");
   print_ip_port(srvr_addr);
-  stack_print(&s->head);
+  stack_print();
 
   for (;;) {
     rcva_len = (socklen_t) sizeof(clin_addr);
     recvfrom(sock, (char *)NULL, (size_t)NULL, 0, &clin_addr, &rcva_len);
-    if (pthread_rwlock_wrlock(&s->lock) != 0) {
-          perror("writer thread: pthread_rwlock_wrlock error");
-          exit(__LINE__);
-      }
-
+ 
+      stack_push(clin_addr);
       printf("Add new host: ");
-      stack_push(&s->head, clin_addr);
-      stack_print(&s->head);
+      stack_print();
 
-      if (pthread_rwlock_unlock(&s->lock) != 0) {
-          perror("writer thread: pthread_rwlock_unlock error");
-          exit(__LINE__);
-      }
   }
 
-  stack_clear(&s->head);
+  stack_clear();
   return 0;
 }
