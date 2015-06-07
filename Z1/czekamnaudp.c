@@ -38,16 +38,14 @@ int main(int argc, char *argv[]) {
   snda_len = (socklen_t) sizeof(client_address);
   rcva_len = (socklen_t) sizeof(client_address);
   flags = 0; // we do not request anything special
-  len = recvfrom(sock, tab, sizeof(tab), flags,
-      (struct sockaddr *) &client_address, &rcva_len);
+  len = recvfrom(sock, tab, sizeof(tab), flags, (struct sockaddr *) &client_address, &rcva_len);
   if (len < 0)
     syserr("error on datagram from client socket");
   else {
     printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
     len = sizeof(tab);
     tab[1] = htobe64(gettime());
-    snd_len = sendto(sock, tab, (size_t) len, flags,
-        (struct sockaddr *) &client_address, snda_len);
+    snd_len = sendto(sock, tab, (size_t) len, flags, (struct sockaddr *) &client_address, snda_len);
     if (snd_len != len)
       syserr("error on sending datagram to client socket");
     printf("send time: %" PRIu64 "\n", be64toh(tab[1]));

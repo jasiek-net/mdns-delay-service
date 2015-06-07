@@ -30,8 +30,7 @@ unsigned char* ReadName (unsigned char*,unsigned char*,int*);
 void get_dns_servers();
  
 //DNS header structure
-struct DNS_HEADER
-{
+struct DNS_HEADER {
     unsigned short id; // identification number
  
     unsigned char rd :1; // recursion desired
@@ -53,16 +52,20 @@ struct DNS_HEADER
 };
  
 //Constant sized fields of query structure
-struct QUESTION
-{
+struct QUESTION {
     unsigned short qtype;
     unsigned short qclass;
 };
  
+ //Structure of a Query
+typedef struct{
+    unsigned char *name;
+    struct QUESTION *ques;
+} QUERY;
+
 //Constant sized fields of the resource record structure
 #pragma pack(push, 1)
-struct R_DATA
-{
+struct R_DATA {
     unsigned short type;
     unsigned short _class;
     unsigned int ttl;
@@ -77,14 +80,7 @@ struct RES_RECORD
     struct R_DATA *resource;
     unsigned char *rdata;
 };
- 
-//Structure of a Query
-typedef struct
-{
-    unsigned char *name;
-    struct QUESTION *ques;
-} QUERY;
- 
+  
 int main( int argc , char *argv[])
 {
     unsigned char hostname[100];
@@ -181,12 +177,10 @@ void ngethostbyname(unsigned char *host , int query_type)
     printf("\n %d Authoritative Servers.",ntohs(dns->auth_count));
     printf("\n %d Additional records.\n\n",ntohs(dns->add_count));
  
-    //Start reading answers
+    //Start reading ANSWERS
     stop=0;
- 
-    for(i=0;i<ntohs(dns->ans_count);i++)
-    {
-        answers[i].name=ReadName(reader,buf,&stop);
+    for(i = 0; i < ntohs(dns->ans_count); i++) {
+        answers[i].name = ReadName(reader, buf, &stop);
         reader = reader + stop;
  
         answers[i].resource = (struct R_DATA*)(reader);
@@ -396,9 +390,10 @@ void get_dns_servers()
  * This will convert www.google.com to 3www6google3com 
  * got it :)
  * */
-void ChangetoDnsNameFormat(unsigned char* dns,unsigned char* host) 
+void ChangetoDnsNameFormat(unsigned char* dns, unsigned char* host) 
 {
     int lock = 0 , i;
+    strcat((char*)host,".");
      
     for(i = 0 ; i < strlen((char*)host) ; i++) 
     {

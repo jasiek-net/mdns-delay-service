@@ -148,6 +148,8 @@ mDNS:
 - odpowiedź A: NAZWA._USŁUGA._PROTOCOL
 - i pytanie 
 
+- poprawić te u_chary itd: http://stackoverflow.com/questions/21240120/how-to-tell-swig-to-treat-u-char-as-unsigned-char
+
 
 -------------------------------
 TCP
@@ -170,6 +172,9 @@ DWA WĄTKI:
 1. Wysyła nieblokujące connecty do listy addr
 2. Libevent w pętli odbiera pakiety
   - problem: czy można wywołać connect na sockecie na którym wcześniej był listen?
+  - zakładam, że nie, więc pomysł upada/chyba że zrobimy clienta lib
+
+
 
 -------------------------------
 UDP

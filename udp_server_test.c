@@ -53,8 +53,7 @@ int main(int argc, char *argv[]) {
   uint64_t tab[2];
   
   sock = socket(AF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
-  if (sock < 0)
-    syserr("socket");
+  if (sock < 0) syserr("socket");
   // after socket() call; we should close(sock) on any execution path;
   // since all execution paths exit immediately, sock would be closed when program terminates
 
