@@ -26,18 +26,18 @@ int main(int argc, char *argv[]) {
   // pthread_t udp_server_t;
   // if (pthread_create(&udp_server_t, 0, udp_server, udp_srv_port) != 0) syserr("pthread_create");
 
-  int sec = 2;
-  pthread_t m_dns_t;
-  if (pthread_create(&m_dns_t, 0, m_dns, &sec) != 0) syserr("pthread_create");
+//  int sec = 2;
+//  pthread_t m_dns_t;
+//  if (pthread_create(&m_dns_t, 0, m_dns, &sec) != 0) syserr("pthread_create");
 
-//  pthread_t mdns_t;
-//  if (pthread_create(&mdns_t, 0, mdns, head) != 0) syserr("pthread_create");
+ pthread_t mdns_t;
+ if (pthread_create(&mdns_t, 0, mdns, head) != 0) syserr("pthread_create");
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, head) != 0) syserr("pthread_create");
 
-  // pthread_t tcp_client_t;
-  // if (pthread_create(&tcp_client_t, 0, tcp_client, head) != 0) syserr("pthread_create");
+  pthread_t tcp_client_t;
+  if (pthread_create(&tcp_client_t, 0, tcp_client, head) != 0) syserr("pthread_create");
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {
@@ -50,6 +50,6 @@ int main(int argc, char *argv[]) {
 
   // create_thread(mdns_t, mdns);
   // create_thread(udp_client_t, udp_client);
-  pthread_join(m_dns_t, NULL);
+  pthread_join(tcp_client_t, NULL);
   return 0;
 }
