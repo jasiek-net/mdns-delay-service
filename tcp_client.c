@@ -90,7 +90,7 @@ void *tcp_client_connect(void *arg) {
 				  server[i].fd = sock;
 				  server[i].events = POLLOUT;
 				  server[i].revents = 0;
-
+				  // tutaj connect nie na adres hosta tylko na ip hosta i port 22 (ssh)
 					rc = connect(sock, &p->host.addr, addr_len); 
 				  if (rc < 0 && errno != EINPROGRESS) syserr("connect");
 			  }  		

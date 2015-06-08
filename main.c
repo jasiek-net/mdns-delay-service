@@ -15,11 +15,14 @@
 
 #include "threads.h"
 
+
 int main(int argc, char *argv[]) {
   if (pthread_rwlock_init(&lock, NULL) != 0) syserr("pthread_rwlock_init");
   head = NULL;
 
-  int sec = 2;
+  addr_len = sizeof(struct sockaddr);
+  delay = 1;
+
   int *udp_srv_port;
   udp_srv_port = malloc(sizeof(int));
   *udp_srv_port = 3382;
@@ -36,8 +39,12 @@ int main(int argc, char *argv[]) {
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, head) != 0) syserr("pthread_create");
 
-  pthread_t tcp_client_t;
-  if (pthread_create(&tcp_client_t, 0, tcp_client, &sec) != 0) syserr("pthread_create");
+  // pthread_t tcp_client_t;
+  // if (pthread_create(&tcp_client_t, 0, tcp_client, &sec) != 0) syserr("pthread_create");
+
+ pthread_t icmp_t;
+ if (pthread_create(&icmp_t, 0, icmp, NULL) != 0) syserr("pthread_create");
+
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {
@@ -50,6 +57,6 @@ int main(int argc, char *argv[]) {
 
   // create_thread(mdns_t, mdns);
   // create_thread(udp_client_t, udp_client);
-  pthread_join(tcp_client_t, NULL);
+  pthread_join(icmp_t, NULL);
   return 0;
 }

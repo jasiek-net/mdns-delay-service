@@ -17,6 +17,15 @@ extern void print_ip_port(struct sockaddr sa);
 extern void *udp_client(void *arg);
 extern void *udp_server(void *arg);
 extern void *tcp_client(void *arg);
+extern void *icmp(void *arg);
+
+socklen_t addr_len;
+int delay;
+
+// for ICMP packets
+unsigned short in_cksum(unsigned short *addr, int len);
+void drop_to_nobody();
+
 
 #endif
 
@@ -34,8 +43,10 @@ struct host_data {
 		icm[10],
 		u, t, i;
 	int tcp_numb,
-		tcp_serv;
-	uint64_t tcp_time;
+		tcp_serv,
+		icm_seq;
+	uint64_t tcp_time,
+			 icm_time;
 };
 
 typedef struct host_data stack_data; //stack data type - set for integers, modifiable

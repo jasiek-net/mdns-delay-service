@@ -18,8 +18,8 @@ void connect_w_to(void) {
   addr.sin_family = AF_INET; 
   addr.sin_port = htons(2000); 
   addr.sin_addr.s_addr = inet_addr("192.168.0.1"); 
-  res = connect(soc, (struct sockaddr *)&addr, sizeof(addr)); 
 
+  res = connect(soc, (struct sockaddr *)&addr, sizeof(addr)); 
   if (res < 0) { 
      if (errno == EINPROGRESS) { 
         tv.tv_sec = 15; 

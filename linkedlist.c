@@ -30,15 +30,18 @@ void init_host(struct host_data * h, struct sockaddr addr) {
     (*h).tcp_time = 0;
     (*h).tcp_serv = 1;
     (*h).tcp_numb = 0;
+    (*h).icm_time = 0;
+    (*h).icm_seq = 0;
+
 } 
 
 void stack_push(struct sockaddr addr) {
-    Node *new = malloc(sizeof(Node));
-    init_host(&(new->host), addr);
+  Node *new = malloc(sizeof(Node));
+  init_host(&(new->host), addr);
 	if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
-    new -> next = head;
-    head = new;
-    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthread_rwlock_unlock error");
+  new -> next = head;
+  head = new;
+  if (pthread_rwlock_unlock(&lock) != 0) syserr("pthread_rwlock_unlock error");
 }
  
 stack_data stack_pop(Node **node_head) {
@@ -52,7 +55,7 @@ stack_data stack_pop(Node **node_head) {
     }
     return d;
 }
- 
+
 void stack_print() {
     if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
 
@@ -123,24 +126,24 @@ void add_measurement(struct sockaddr *sa, char *type, int result) {
 
 void add_tcp(int numb, uint64_t end) {
 
-    if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
+  if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
 
-    Node *p = head;    
-    while(p) {
-        if (p->host.tcp_numb != numb)
-            p = p->next;
-        else {
-            if (end == 0)
-                p->host.tcp_time = 0;
-            else {
-                p->host.tcp[ p->host.t ] = (int) (end - p->host.tcp_time);
-                printf("add tcp: %d\n", p->host.tcp[ p->host.t ]);
-                p->host.t = (p->host.t + 1) % 10;
-                p->host.tcp_time = 0;                
-            }
-            break;
-        }
+  Node *p = head;    
+  while(p) {
+    if (p->host.tcp_numb != numb)
+      p = p->next;
+    else {
+      if (end == 0)
+        p->host.tcp_time = 0;
+      else {
+        p->host.tcp[ p->host.t ] = (int) (end - p->host.tcp_time);
+        printf("add tcp: %d\n", p->host.tcp[ p->host.t ]);
+        p->host.t = (p->host.t + 1) % 10;
+        p->host.tcp_time = 0;                
+      }
+      break;
     }
-    
-    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
+  }
+  
+  if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }

@@ -185,6 +185,8 @@ DWA WĄTKI:
   - problem: czy można wywołać connect na sockecie na którym wcześniej był listen?
   - zakładam, że nie, więc pomysł upada/chyba że zrobimy clienta lib
 
+TO DO:
+  -> trzeba zmienić wysyłanie pakietów na host 22
 
 
 -------------------------------
