@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
   if (pthread_rwlock_init(&lock, NULL) != 0) syserr("pthread_rwlock_init");
   head = NULL;
 
+  int sec = 2;
   int *udp_srv_port;
   udp_srv_port = malloc(sizeof(int));
   *udp_srv_port = 3382;
@@ -26,7 +27,6 @@ int main(int argc, char *argv[]) {
   // pthread_t udp_server_t;
   // if (pthread_create(&udp_server_t, 0, udp_server, udp_srv_port) != 0) syserr("pthread_create");
 
-//  int sec = 2;
 //  pthread_t m_dns_t;
 //  if (pthread_create(&m_dns_t, 0, m_dns, &sec) != 0) syserr("pthread_create");
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
   // if (pthread_create(&udp_client_t, 0, udp_client, head) != 0) syserr("pthread_create");
 
   pthread_t tcp_client_t;
-  if (pthread_create(&tcp_client_t, 0, tcp_client, head) != 0) syserr("pthread_create");
+  if (pthread_create(&tcp_client_t, 0, tcp_client, &sec) != 0) syserr("pthread_create");
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {

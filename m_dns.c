@@ -15,7 +15,6 @@
 
 #include "threads.h"
 
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h> /* for strncpy */
@@ -117,7 +116,7 @@ void get_record(unsigned char *query, int query_type, int qora, unsigned char *b
     //Set the DNS structure to standard queries
     dns = (struct DNS_HEADER *) buf;
  
-    dns->id = (unsigned short) htons(getpid());
+    dns->id = (unsigned short) htons(0);
     dns->opcode = 0; //This is a standard query
     dns->aa = 0; //Not Authoritative
     dns->tc = 0; //This message is not truncated
@@ -179,15 +178,15 @@ char *get_hostname() {
 }
 
 char *get_hostip() {
- int fd;
- struct ifreq ifr;
- fd = socket(AF_INET, SOCK_DGRAM, 0);
- ifr.ifr_addr.sa_family = AF_INET;
- // get ip from eth0 interface
- strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
- ioctl(fd, SIOCGIFADDR, &ifr);
- close(fd);
- return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
+  int fd;
+  struct ifreq ifr;
+  fd = socket(AF_INET, SOCK_DGRAM, 0);
+  ifr.ifr_addr.sa_family = AF_INET;
+  // get ip from eth0 interface
+  strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
+  ioctl(fd, SIOCGIFADDR, &ifr);
+  close(fd);
+  return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
 }
 
 void *m_dns_receive(void *arg) {
@@ -217,7 +216,6 @@ void *m_dns_receive(void *arg) {
         struct QUERY *questions = get_question(buf);
 
         for(i=0 ; i < ntohs(dns->q_count) ; i++) {
-//          printf("1 Q recv: %s\n", questions[i].name);
           
           if (ntohs(questions[i].ques->qtype) == T_PTR && strcmp(questions[i].name, "_opoznienia._udp.local.") == 0) {
             printf("2 A T_PTR: %s\n", hostname);

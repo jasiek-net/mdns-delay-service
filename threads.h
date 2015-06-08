@@ -33,6 +33,9 @@ struct host_data {
 		tcp[10],
 		icm[10],
 		u, t, i;
+	int tcp_numb,
+		tcp_serv;
+	uint64_t tcp_time;
 };
 
 typedef struct host_data stack_data; //stack data type - set for integers, modifiable
@@ -53,6 +56,7 @@ void stack_clear(); //clears the stack of all elements
 //void stack_snoc(Node **node_head, stack_data d); //appends a node
 int stack_elem(struct sockaddr *sa); //checks for an element
 void add_measurement(struct sockaddr *sa, char *type, int result);
+void add_tcp(int numb, uint64_t end);
 
 #endif
 

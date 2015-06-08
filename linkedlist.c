@@ -27,6 +27,9 @@ void init_host(struct host_data * h, struct sockaddr addr) {
 	memset((*h).udp, 0, sizeof((*h).udp));
 	memset((*h).tcp, 0, sizeof((*h).tcp));
 	memset((*h).icm, 0, sizeof((*h).icm));
+    (*h).tcp_time = 0;
+    (*h).tcp_serv = 1;
+    (*h).tcp_numb = 0;
 } 
 
 void stack_push(struct sockaddr addr) {
@@ -111,10 +114,33 @@ void add_measurement(struct sockaddr *sa, char *type, int result) {
 				p->host.i = (p->host.i+1)%10;
 			}
 						
-			p = NULL;
+			break;
         }
     }
     
 	if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
 
+void add_tcp(int numb, uint64_t end) {
+
+    if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
+
+    Node *p = head;    
+    while(p) {
+        if (p->host.tcp_numb != numb)
+            p = p->next;
+        else {
+            if (end == 0)
+                p->host.tcp_time = 0;
+            else {
+                p->host.tcp[ p->host.t ] = (int) (end - p->host.tcp_time);
+                printf("add tcp: %d\n", p->host.tcp[ p->host.t ]);
+                p->host.t = (p->host.t + 1) % 10;
+                p->host.tcp_time = 0;                
+            }
+            break;
+        }
+    }
+    
+    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
+}

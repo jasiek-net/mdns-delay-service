@@ -18,6 +18,9 @@ main: main.o $(DEPT)
 udp: udp_server_test.o err.o err.h
 	$(CC) $(LFLAGS) $^ -o $@
 
+tcp: tcp_server_test.o err.o err.h
+	$(CC) $(LFLAGS) $^ -o $@
+
 .PHONY: clean all
 clean:
 	rm -f $(TARGET) *.o *~ *.bak

@@ -155,6 +155,7 @@ mDNS:
   - answer w takim samym formacie co question (bez offsetu)
   - czy Autohrity answer?
   - po co nam pole rdata? czy trzeba z niego korzystać? czy trzeba coś tam wpisać, czy trzeba z tego czytać i czy można z tego korzystać (np. wziąć od razu IP jeśli chodzi o udostępnianie usługi itd.)
+  - w polu rdata trzeba wpisać odpowiedź, a pytanie skopiować do pola name!!!
 
   - co daje w nagłówki pid procesu? Czy to SO sprawia, że trafia do nas ten pakiet, czy to my mamy zweryfikować czy to na nasze pytanie przyszła odp?
 

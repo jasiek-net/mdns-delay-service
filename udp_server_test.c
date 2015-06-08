@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
   server_address.sin_family = AF_INET; // IPv4
   server_address.sin_addr.s_addr = htonl(INADDR_ANY); // listening on all interfaces
-  server_address.sin_port = 0; //htons(PORT); // port for receiving from command line any port!
+  server_address.sin_port = htons(48712); // port for receiving from command line any port!
 
   // bind the socket to a concrete address
   if (bind(sock, (struct sockaddr *) &server_address, (socklen_t) sizeof(server_address)) < 0)
