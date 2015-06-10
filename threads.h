@@ -18,9 +18,8 @@ extern void *udp_client(void *arg);
 extern void *udp_server(void *arg);
 extern void *tcp_client(void *arg);
 extern void *icmp(void *arg);
+extern void *telnet(void *arg);
 
-socklen_t addr_len;
-int delay;
 
 // for ICMP packets
 unsigned short in_cksum(unsigned short *addr, int len);
@@ -58,6 +57,18 @@ struct stack { //stack structure format
 
 Node *head; //pointer to stack head
 pthread_rwlock_t lock;
+pthread_rwlock_t lock_tcp;
+pthread_rwlock_t lock_telnet;
+socklen_t addr_len;
+int delay;
+int telnet_delay;
+int telnet_port;
+
+
+// MAX TCP OPEN SOCKETS
+#define MAX_SERVERS 1019
+
+
 
 int stack_len(); //stack length
 void stack_push(struct sockaddr addr); //pushes a value d onto the stack

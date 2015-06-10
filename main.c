@@ -18,6 +18,9 @@
 
 int main(int argc, char *argv[]) {
   if (pthread_rwlock_init(&lock, NULL) != 0) syserr("pthread_rwlock_init");
+  if (pthread_rwlock_init(&lock_telnet, NULL) != 0) syserr("pthread_rwlock_init");
+  if (pthread_rwlock_init(&lock_tcp, NULL) != 0) syserr("pthread_rwlock_init");
+
   head = NULL;
 
   addr_len = sizeof(struct sockaddr);
@@ -42,9 +45,13 @@ int main(int argc, char *argv[]) {
   // pthread_t tcp_client_t;
   // if (pthread_create(&tcp_client_t, 0, tcp_client, &sec) != 0) syserr("pthread_create");
 
- pthread_t icmp_t;
- if (pthread_create(&icmp_t, 0, icmp, NULL) != 0) syserr("pthread_create");
+ // pthread_t icmp_t;
+ // if (pthread_create(&icmp_t, 0, icmp, NULL) != 0) syserr("pthread_create");
 
+ telnet_delay = 1;
+ telnet_port = 3637;
+ pthread_t telnet_t;
+ if (pthread_create(&telnet_t, 0, telnet, telnet_port) != 0) syserr("pthread_create");
 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {
@@ -57,6 +64,6 @@ int main(int argc, char *argv[]) {
 
   // create_thread(mdns_t, mdns);
   // create_thread(udp_client_t, udp_client);
-  pthread_join(icmp_t, NULL);
+  pthread_join(telnet_t, NULL);
   return 0;
 }

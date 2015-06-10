@@ -4,7 +4,7 @@ LFLAGS	= -Wall
 
 TARGET = main
 
-DEPT = err.o linkedlist.o mdns.o udp_client.o udp_server.o tcp_client.o icmp.o dropnobody.o in_cksum.o
+DEPT = err.o linkedlist.o mdns.o udp_client.o udp_server.o tcp_client.o icmp.o dropnobody.o in_cksum.o telnet.o
 
 all: $(TARGET)
 

@@ -20,8 +20,6 @@
 
 #include <fcntl.h>
 
-#define MAX_SERVERS 1019
-
 //struct pollfd server[MAX_SERVERS];
 
 
@@ -63,8 +61,6 @@ int get_free_server() {
 	return -1;
 }
 
-pthread_rwlock_t lock_tcp;
-
 
 void *tcp_client_connect(void *arg) {
   socklen_t addr_len = sizeof(struct sockaddr);
@@ -90,7 +86,7 @@ void *tcp_client_connect(void *arg) {
 				  server[i].fd = sock;
 				  server[i].events = POLLOUT;
 				  server[i].revents = 0;
-				  // tutaj connect nie na adres hosta tylko na ip hosta i port 22 (ssh)
+				  // tutaj connect nie na adres hosta tylko na ip hosta i port 22 ()
 					rc = connect(sock, &p->host.addr, addr_len); 
 				  if (rc < 0 && errno != EINPROGRESS) syserr("connect");
 			  }  		
@@ -99,7 +95,6 @@ void *tcp_client_connect(void *arg) {
     	}
 		  p = p->next;
 		}
-
     if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 
     if (pthread_rwlock_unlock(&lock_tcp) != 0) syserr("pthred_rwlock_unlock error");
@@ -110,7 +105,6 @@ void *tcp_client_connect(void *arg) {
 
 void *tcp_client (void *arg) {
 	int sec = *(int *) arg;
-	if (pthread_rwlock_init(&lock_tcp, NULL) != 0) syserr("pthread_rwlock_init");
 
 	init_servers();
 

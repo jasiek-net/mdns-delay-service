@@ -186,7 +186,7 @@ DWA WĄTKI:
   - zakładam, że nie, więc pomysł upada/chyba że zrobimy clienta lib
 
 TO DO:
-  -> trzeba zmienić wysyłanie pakietów na host 22
+  -> trzeba zmienić wysyłanie pakietów na port! 22 czyli defacto wyciągnąć adresy i zrobić w innym miejscu connect
 
 
 -------------------------------
@@ -249,3 +249,10 @@ Also, as mentioned before, if the implementation file needs some other headers, 
 TODO:
 - wszędzie pozmieniać sockaddr z sockaddr_in - w ogóle po chuj się to tak deklaruje skoro wszędzie się używa sockaddr!?
 - przenieść logikę rw_locka do linkedlisty! i pozbyć się tego kodu wątków!
+
+--------------------------------------------
+ICMP
+--------------------------------------------
+- czy wysyłamy pingi na jakiś inny adres niż pakiety UDP na port 3382? - jeśli tak, trzeba to ogarnąć
+- czy dobrze zakodowałem indeks? czy wystarczy mi 4 bajty?
+

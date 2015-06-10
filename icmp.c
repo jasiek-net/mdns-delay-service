@@ -160,6 +160,8 @@ W pakietach ICMP należy:
  a w ostatnich 8 - numer grupy. Należy zadbać o sensowną obsługę numerów sekwencyjnych. Program `opoznienia` nie powinien
 odpowiadać na zapytania ICMP Echo Request. Zakładamy, że to potrafi system operacyjny.
 */
+int sock;
+
 
 void *icmp_receive(void *arg) {
   struct sockaddr_in rcv_addr;
@@ -207,7 +209,6 @@ void *icmp_receive(void *arg) {
 }
 
 void *icmp (void *arg) {
-  int sock;
 
   sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
   if (sock < 0) syserr("socket");
