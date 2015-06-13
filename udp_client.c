@@ -30,7 +30,6 @@ uint64_t gettime() {
   return tv.tv_sec*1000000ull+tv.tv_usec;
 }
 
-
 struct udp_struct {
   struct stuff *s;
   int *b;
@@ -78,9 +77,8 @@ void *udp_client (void *arg) {
     sleep(1);
   }
 
-  if (close(sock) == -1) { //very rare errors can occur here, but then
-    syserr("close"); //it's healthy to do the check
-  };
+  if (close(sock) == -1)
+    syserr("close");
 
 }
 

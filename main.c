@@ -15,44 +15,69 @@
 
 #include "threads.h"
 
-
 int main(int argc, char *argv[]) {
-  if (pthread_rwlock_init(&lock, NULL) != 0) syserr("pthread_rwlock_init");
-  if (pthread_rwlock_init(&lock_telnet, NULL) != 0) syserr("pthread_rwlock_init");
-  if (pthread_rwlock_init(&lock_tcp, NULL) != 0) syserr("pthread_rwlock_init");
+  udp_port = 3382;    // -u
+  telnet_port = 3637;  // -U
+  measure_delay = 1;  // -t
+  mdns_delay = 10;     // -T
+  telnet_delay = 1;   // -v
+  ssh_multicast = 0;  // -s
 
+  // reading arguments:
+  int i;
+  for (i = 1; i < argc; i++) {
+    if (!strcmp(argv[i], "-u") && i + 1 < argc)
+      sscanf(argv[i+1], "%d", &udp_port);
+    else if (!strcmp(argv[i], "-U") && i + 1 < argc)
+      sscanf(argv[i+1], "%d", &telnet_port);
+    else if (!strcmp(argv[i], "-t") && i + 1 < argc)
+      sscanf(argv[i+1], "%d", &measure_delay);
+    else if (!strcmp(argv[i], "-T") && i + 1 < argc)
+      sscanf(argv[i+1], "%d", &mdns_delay);
+    if (!strcmp(argv[i], "-v") && i + 1 < argc)
+      sscanf(argv[i+1], "%d", &telnet_delay);      
+    if (!strcmp(argv[i], "-s"))
+      ssh_multicast = 1;
+  }
+
+  // initialization:
+  if (pthread_rwlock_init(&lock, NULL) != 0)
+    syserr("pthread_rwlock_init");
+  if (pthread_rwlock_init(&lock_telnet, NULL) != 0)
+    syserr("pthread_rwlock_init");
+  if (pthread_rwlock_init(&lock_tcp, NULL) != 0)
+    syserr("pthread_rwlock_init");
   head = NULL;
-
   addr_len = sizeof(struct sockaddr);
-  delay = 1;
 
-  int *udp_srv_port;
-  udp_srv_port = malloc(sizeof(int));
-  *udp_srv_port = 3382;
+  pthread_t udp_server_t;
+  pthread_t udp_client_t;
+  pthread_t tcp_client_t;
+  pthread_t icm_client_t;
+  pthread_t mdns_t;
+  pthread_t telnet_t;
+  
+  // SHOW TIME!
+  // if (pthread_create(&udp_server_t, 0, udp_server, NULL) != 0)
+  //   syserr("pthread_create");
 
-  // pthread_t udp_server_t;
-  // if (pthread_create(&udp_server_t, 0, udp_server, udp_srv_port) != 0) syserr("pthread_create");
+  // if (pthread_create(&udp_client_t, 0, udp_client, NULL) != 0)
+  //   syserr("pthread_create");
 
-//  pthread_t m_dns_t;
-//  if (pthread_create(&m_dns_t, 0, m_dns, &sec) != 0) syserr("pthread_create");
+  // if (pthread_create(&tcp_client_t, 0, tcp_client, NULL) != 0)
+  //   syserr("pthread_create");
 
- pthread_t mdns_t;
- if (pthread_create(&mdns_t, 0, mdns, head) != 0) syserr("pthread_create");
+  // if (pthread_create(&icm_client_t, 0, icm_client, NULL) != 0)
+  //   syserr("pthread_create");
 
-  // pthread_t udp_client_t;
-  // if (pthread_create(&udp_client_t, 0, udp_client, head) != 0) syserr("pthread_create");
+  mdns_delay = 2;
+  if (pthread_create(&mdns_t, 0, mdns, NULL) != 0)
+    syserr("pthread_create");
+  
+  // if (pthread_create(&telnet_t, 0, telnet, NULL) != 0)
+  //   syserr("pthread_create");
 
-  // pthread_t tcp_client_t;
-  // if (pthread_create(&tcp_client_t, 0, tcp_client, &sec) != 0) syserr("pthread_create");
-
- // pthread_t icmp_t;
- // if (pthread_create(&icmp_t, 0, icmp, NULL) != 0) syserr("pthread_create");
-
- telnet_delay = 1;
- telnet_port = 3637;
- pthread_t telnet_t;
- if (pthread_create(&telnet_t, 0, telnet, telnet_port) != 0) syserr("pthread_create");
-
+ 
   // pthread_t udp_client_t;
   // if (pthread_create(&udp_client_t, 0, udp_client, &s) != 0) {
   //   perror("pthread_create error");
@@ -60,10 +85,10 @@ int main(int argc, char *argv[]) {
   // }
   // pthread_detach(udp_client_t);
   
+  // pthread_join(telnet_t, NULL);
 
+  while(1)
+    sleep(1);
 
-  // create_thread(mdns_t, mdns);
-  // create_thread(udp_client_t, udp_client);
-  pthread_join(telnet_t, NULL);
   return 0;
 }

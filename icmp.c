@@ -289,7 +289,7 @@ void *icmp (void *arg) {
 
     if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 
-    sleep(delay);
+    sleep(measure_delay);
   }
 
   if (close(sock) == -1) { //very rare errors can occur here, but then

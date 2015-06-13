@@ -258,7 +258,7 @@ void ngethostbyname(unsigned char *host , int query_type)
             printf("has IPv4 address : %s",inet_ntoa(a.sin_addr));
         }
          
-        if(ntohs(answers[i].resource->type)==5) 
+        if(ntohs(answers[i].resource->type) == 5) 
         {
             //Canonical name for an alias
             printf("has alias name : %s",answers[i].rdata);

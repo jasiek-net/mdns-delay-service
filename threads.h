@@ -1,3 +1,21 @@
+#ifndef MDNS_EXTRA_H
+#define MDNS_EXTRA_H
+
+struct RES_RECORD *get_answer(char *buf);
+struct QUERY *get_question(char *buf);
+
+
+void parse_msg(char * buf);
+void ansitonetwork(unsigned char* host, unsigned char* netwrk);
+void get_record(unsigned char *query, int query_type, int qora, unsigned char *buf, ssize_t *len);
+unsigned char *get_query(unsigned char* buf);
+
+u_char* ReadName(unsigned char* reader, unsigned char* buffer, int* count);
+
+
+#endif
+
+
 
 /* THREADS.C and some helpful function */
 #ifndef THREADS_H
@@ -10,14 +28,14 @@
 
 #define UDP_SRV_PORT 3382
 
-extern void *mdns(void *arg);
-extern void *m_dns(void *arg);
 extern uint64_t gettime();
 extern void print_ip_port(struct sockaddr sa);
-extern void *udp_client(void *arg);
+
 extern void *udp_server(void *arg);
+extern void *udp_client(void *arg);
 extern void *tcp_client(void *arg);
-extern void *icmp(void *arg);
+extern void *icm_client(void *arg);
+extern void *mdns(void *arg);
 extern void *telnet(void *arg);
 
 
@@ -60,9 +78,12 @@ pthread_rwlock_t lock;
 pthread_rwlock_t lock_tcp;
 pthread_rwlock_t lock_telnet;
 socklen_t addr_len;
-int delay;
-int telnet_delay;
+int udp_port;
 int telnet_port;
+int measure_delay;
+int telnet_delay;
+int mdns_delay;
+int ssh_multicast;
 
 
 // MAX TCP OPEN SOCKETS

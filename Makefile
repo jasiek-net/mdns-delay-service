@@ -4,11 +4,11 @@ LFLAGS	= -Wall
 
 TARGET = main
 
-DEPT = err.o linkedlist.o mdns.o udp_client.o udp_server.o tcp_client.o icmp.o dropnobody.o in_cksum.o telnet.o
+DEPT = udp_server.o udp_client.o tcp_client.o icm_client.o dropnobody.o in_cksum.o telnet.o mdns.o mdns_extra.o err.o linkedlist.o 
 
 all: $(TARGET)
 
-mdns: mdns.o
+mdns: mdns.o mdns_extra.o
 	$(CC) $(LFLAGS) $^ -o $@ -lpthread
 
 main: main.o $(DEPT)

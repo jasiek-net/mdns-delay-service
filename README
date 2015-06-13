@@ -256,3 +256,21 @@ ICMP
 - czy wysyłamy pingi na jakiś inny adres niż pakiety UDP na port 3382? - jeśli tak, trzeba to ogarnąć
 - czy dobrze zakodowałem indeks? czy wystarczy mi 4 bajty?
 
+
+--------------------------------------------
+M_DNS
+--------------------------------------------
+- co to znaczy: Należy umożliwić włączenie w programie `opoznienia` trybu, w którym usługa _ssh._tcp jest ogłaszana przez DNS-SD (opcja -s)
+  - usługa jest ogłaszana? czyli user._ssh._tcp.local jako T_PTR i w polu name ma byc "_ssh._tcp.local"?
+
+- czy w polu odpowiedź odpowiadamy na PTR tylko nazwą kompa czy user._ssh._tcp.local.?
+- ttl na zero?
+- data_len - na to przypisujemy po prostu sizeof() - bo to jest liczba oktetów (charów) wiadomości
+- na końcu przesyłanej wiadomosci (tesktowej) wrzucamy znak '\0' - TAK!
+
+// Na przykład:
+// na zapytanie o PTR dla _opoznienia._udp.local. odpowiadamy, że moj-komputer._opoznienia._udp.local.,
+// otrzymawszy taką odpowiedź pytamy o A dla moj-komputer._opoznienia._udp.local.,
+// na zapytanie o A dla moj-komputer._opoznienia._udp.local. odpowiadamy, że 192.168.1.42.
+
+- losowe opóżnienie
