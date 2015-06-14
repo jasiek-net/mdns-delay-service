@@ -1,4 +1,3 @@
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -13,34 +12,10 @@
 #include <sys/time.h>
 #include <inttypes.h>
 #include <endian.h>
-
+#include <fcntl.h>
 #include <poll.h>
 
 #include "threads.h"
-
-#include <fcntl.h>
-
-//struct pollfd server[MAX_SERVERS];
-
-
-// Pola:
-// fd - numer obserwowanego deskryptora
-// events - flagi obserwowane zdarzenia
-// revents - flagi zdarzeń, które zaszły w czasie wywołania poll()
-// POLLIN - obserwowanie nadejścia danych do odczytu
-// POLLOUT - obserwowanie możliwości zapisania danych
-// POLLPRI - obserwowanie nadejścia danych wyjątkowych (out-of-band)
-
-	  // struct addrinfo addr_hints, *addr_1;
-	  // memset(&addr_hints, 0, sizeof(struct addrinfo));
-	  // addr_hints.ai_flags = 0;
-	  // addr_hints.ai_family = AF_INET;
-	  // addr_hints.ai_socktype = SOCK_STREAM;
-	  // addr_hints.ai_protocol = IPPROTO_TCP;
-	  // rc =  getaddrinfo("localhost", "4242", &addr_hints, &addr_1);
-	  // if (rc != 0) syserr("getaddrinfo: %s\n", gai_strerror(rc));
-	  // printf("new server: ");
-	  // print_ip_port(*(addr_1->ai_addr));
 
 struct pollfd server[MAX_SERVERS];
 
@@ -60,13 +35,10 @@ int get_free_server() {
 			return i;
 	return -1;
 }
-
+void tcp_server(void *arg);
 
 void *tcp_client_connect(void *arg) {
-  socklen_t addr_len = sizeof(struct sockaddr);
-	int sec = *(int *) arg;
 	int sock, rc, i;
-	uint64_t start;
 
 	while(1) {
     if (pthread_rwlock_rdlock(&lock_tcp) != 0) syserr("pthread_rwlock_rdlock error");
@@ -74,9 +46,8 @@ void *tcp_client_connect(void *arg) {
     if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
 
     Node *p = head;
-    start = gettime();
     while(p) {
-    	if (p->host.tcp_serv && p->host.tcp_time == 0) {
+    	if (p->host.is_tcp && !p->host.tcp_time) {
   			sock = socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
 				if (sock < 0) syserr("socket");
 
@@ -86,12 +57,13 @@ void *tcp_client_connect(void *arg) {
 				  server[i].fd = sock;
 				  server[i].events = POLLOUT;
 				  server[i].revents = 0;
-				  // tutaj connect nie na adres hosta tylko na ip hosta i port 22 ()
 					rc = connect(sock, &p->host.addr_tcp, addr_len); 
 				  if (rc < 0 && errno != EINPROGRESS) syserr("connect");
-			  }  		
+			  }
 			  p->host.tcp_numb = i;
-			  p->host.tcp_time = start;
+			  p->host.tcp_time = gettime();
+			  // printf("tcp connect: ");
+			  // print_ip_port(p->host.addr_tcp);
     	}
 		  p = p->next;
 		}
@@ -99,46 +71,42 @@ void *tcp_client_connect(void *arg) {
 
     if (pthread_rwlock_unlock(&lock_tcp) != 0) syserr("pthred_rwlock_unlock error");
 
-		sleep(sec);
+	sleep(measure_delay);
 	}
 }
 
 void *tcp_client (void *arg) {
-	int sec = *(int *) arg;
 
 	init_servers();
 
   pthread_t tcp_client_connect_t;
-  if (pthread_create(&tcp_client_connect_t, 0, tcp_client_connect, &sec) != 0) syserr("pthread_create");
+  if (pthread_create(&tcp_client_connect_t, 0, tcp_client_connect, NULL) != 0) syserr("pthread_create");
 
-  // printf("POLLOUT: %d\n", POLLOUT);
-  // printf("POLLIN %d\n", POLLIN);
-  // printf("POLLERR %d\n", POLLERR);
-  // printf("POLLNVAL %d\n", POLLNVAL);
-  // printf("POLLPRI %d\n", POLLPRI);
-  // printf("POLLHUP %d\n", POLLHUP);
+  pthread_t tcp_server_t;
+  if (pthread_create(&tcp_server_t, 0, tcp_server, NULL) != 0) syserr("pthread_create");
 
 	int rc, valopt, i;
 	socklen_t lon = sizeof(int); 
 
 	while(1) {
-
 	    if (pthread_rwlock_rdlock(&lock_tcp) != 0) syserr("pthread_rwlock_rdlock error");
-			rc = poll(server, 1, sec*1000);
-		  if (rc < 0)
-		  	syserr("poll");
+
+	  for (i = 0; i < MAX_SERVERS; i++)
+  	  server[i].revents = 0;
+
+			rc = poll(server, MAX_SERVERS, measure_delay*1000);
+		  if (rc < 0) syserr("poll");
 	  	if (rc == 0) {
-	  		printf("timeout!\n");
+	  		// printf("timeout!\n");
 	  	} else {
 	  		for (i = 0; i < MAX_SERVERS; i++) {
 			  	if (server[i].revents & POLLOUT) {
 			      if (getsockopt(server[i].fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) syserr("getsockopt");
 			      if (valopt) {
-			      	printf("Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
-			      	add_tcp(i, 0); 
+			      	// printf("Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
+			      	add_tcp_measurement(i, 0);
 			      } else {
-			      	printf("połączono;)\n");
-			      	add_tcp(i, gettime());
+			      	add_tcp_measurement(i, gettime());
 			      }
 			      if (close(server[i].fd) < 0) syserr("close");
 				    server[i].fd = -1;
@@ -152,10 +120,114 @@ void *tcp_client (void *arg) {
 	return NULL;
 }
 
-// if (client[0].fd >= 0)
-//   if (close(client[0].fd) < 0)
-//     perror("Closing main socket");
-//   exit(EXIT_SUCCESS);
+
+void tcp_server(void *arg) {
+	int client_number = 20;
+	struct pollfd client[client_number];
+  struct sockaddr_in server;
+  size_t length;
+  ssize_t rval;
+  int msgsock, activeClients, i, ret;
+
+  /* Inicjujemy tablicę z gniazdkami klientów, client[0] to gniazdko centrali */
+  for (i = 0; i < client_number; ++i) {
+    client[i].fd = -1;
+    client[i].events = POLLIN;
+    client[i].revents = 0;
+  }
+  activeClients = 0;
+
+  /* Tworzymy gniazdko centrali */
+  client[0].fd = socket(PF_INET, SOCK_STREAM, 0);
+  if (client[0].fd < 0) {
+    perror("Opening stream socket");
+    exit(EXIT_FAILURE);
+  }
+
+  /* Co do adresu nie jesteśmy wybredni */
+  server.sin_family = AF_INET;
+  server.sin_addr.s_addr = my_addr.sin_addr.s_addr;
+  server.sin_port = htons(tcp_port);
+  if (bind(client[0].fd, (struct sockaddr*)&server, (socklen_t)sizeof(server)) < 0) {
+    perror("Binding stream socket");
+    exit(EXIT_FAILURE);
+  }
+
+  // length = sizeof(server);
+  // if (getsockname (client[0].fd, (struct sockaddr*)&server, (socklen_t*)&length) < 0) {
+  //   perror("Getting socket name");
+  //   exit(EXIT_FAILURE);
+  // }
+  // printf("Socket port #%u\n", (unsigned)ntohs(server.sin_port));
+
+  if (listen(client[0].fd, 5) == -1) {
+    perror("Starting to listen");
+    exit(EXIT_FAILURE);
+  }
+
+int klienci = 0;
+  /* Do pracy */
+do {
+// petla zerujace revents lub obsługa zakończenia!
+  for (i = 0; i < client_number; ++i)
+    client[i].revents = 0;
+
+    /* Czekamy przez 5000 ms */
+  ret = poll(client, client_number, 5000);
+  if (ret < 0) perror("poll");
+  else if (ret > 0) {
+			// czy na głównym gnieździe mamy nowego klienta?
+    if ((client[0].revents & POLLIN)) {
+      msgsock = accept(client[0].fd, (struct sockaddr*)0, (socklen_t*)0);
+      if (msgsock == -1)
+        perror("accept");
+      else {
+	// szukamy wolnego miejsca w tablicy i dodajemy nowego goscia
+        for (i = 1; i < client_number; ++i) {
+          if (client[i].fd == -1) {
+            client[i].fd = msgsock;
+            activeClients += 1;
+            break;
+          }
+        }
+	// za dużo chętnych!
+        if (i >= client_number) {
+          fprintf(stderr, "Too many clients\n");
+          if (close(msgsock) < 0)
+            perror("close");
+        } else
+          klienci++;
+      }
+    }
+	// musimy też sprawdzić czy ktoś nie napisał w międzyczasie
+    for (i = 1; i < client_number; ++i) {
+      if (client[i].fd != -1 && (client[i].revents & (POLLIN | POLLERR))) {
+        rval = read(client[i].fd, NULL, 0);
+      if (rval < 0) {
+        perror("Reading stream message");
+        if (close(client[i].fd) < 0)
+          perror("close");
+        client[i].fd = -1;
+        activeClients -= 1;
+      }
+      else if (rval == 0) {
+        // fprintf(stderr, "Ending connection\n");
+        if (close(client[i].fd) < 0)
+          perror("close");
+        client[i].fd = -1;
+        activeClients -= 1;
+        klienci--;
+      }
+      }
+    }
+  } 
+// else
+//   fprintf(stderr, "Do something else\n");
+} while (1);
+}
+
+
+
 
 
 void connect_w_to(void) { 

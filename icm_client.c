@@ -208,7 +208,7 @@ void *icmp_receive(void *arg) {
   return 1;
 }
 
-void *icmp (void *arg) {
+void *icm_client(void *arg) {
 
   sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
   if (sock < 0) syserr("socket");
@@ -317,7 +317,7 @@ void *udp_client_dfreceive(void *arg) {
       printf("odebrano od: ");
       print_ip_port(addr);
 
-		add_measurement(&addr, "udp", (int) (end - be64toh(tab[0])));
+		add_udp_measurement(&addr, "udp", (int) (end - be64toh(tab[0])));
 
 		printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
 		printf("send time: %" PRIu64 "\n", be64toh(tab[1]));

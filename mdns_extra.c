@@ -21,7 +21,6 @@
 #pragma GCC diagnostic ignored "-Wpointer-sign"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-struct sockaddr_in my_addr;
 char *hostname[1024];
 char *host_opoznie[1024];
 char *host_ssh_tcp[1024];

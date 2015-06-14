@@ -33,6 +33,8 @@ void init_host(struct host_data * h) {
     (*h).icm_seq = 0;
     (*h).is_tcp = 0;
     (*h).is_udp = 0;
+    (*h).is_icm = 0;
+
 
 } 
 
@@ -63,16 +65,26 @@ void create_or_add(uint32_t ip, char *type) {
   } else
     edit = p;
 
+  // add icmp host:
+  if (!edit->host.is_icm) {
+    a.sin_port = htons(0);
+    edit->host.is_icm = 1;
+    edit->host.addr_icm = *(struct sockaddr *) &a;
+    printf("add icm: ");
+    print_ip_port(*(struct sockaddr *) &a);
+  }
   if (!strcmp("udp", type) && !edit->host.is_udp) {
     a.sin_port = htons(udp_port);
     edit->host.addr_udp = *(struct sockaddr *) &a;
     edit->host.is_udp = 1;
-    printf("add udp\n");
+    printf("add udp: ");
+    print_ip_port(*(struct sockaddr *) &a);
   } else if (!strcmp("tcp", type) && !edit->host.is_tcp) {
     a.sin_port = htons(tcp_port);
     edit->host.addr_tcp = *(struct sockaddr *) &a;
     edit->host.is_tcp = 1;
-    printf("add tcp\n");
+    printf("add tcp: ");
+    print_ip_port(*(struct sockaddr *) &a);
   }
 
   if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
@@ -138,51 +150,58 @@ int stack_elem(struct sockaddr *sa) {
    if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
 
-void add_measurement(struct sockaddr *sa, char *type, int result) {
+void add_udp_measurement(struct sockaddr *sa, uint64_t result) {
 
 	if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
 
     Node *p = head;    
     while(p) {
-        if(strcmp(sa->sa_data, p->host.addr_udp.sa_data)) //set for numbers, modifiable
-            p = p->next;
+        if(strcmp(sa->sa_data, p->host.addr_udp.sa_data)) p = p->next;
         else {
-			
-			if (!strcmp("udp", type)) {
-				printf("udp pomiar: %d, wynik: %d\n", p->host.u, result); 
-				p->host.udp[ p->host.u ] = result;
-				p->host.u = (p->host.u+1)%10;
-			} else if (!strcmp("tcp", type)) {
-				p->host.tcp[ p->host.t ] = result;
-				p->host.t = (p->host.t+1)%10;
-			} else if (!strcmp("icm", type)) {
-				p->host.icm[ p->host.i ] = result;
-				p->host.i = (p->host.i+1)%10;
-			}
-						
-			break;
+  				printf("udp pomiar: %d, wynik: %lu\n", p->host.u, result); 
+  				p->host.udp[ p->host.u ] = result;
+  				p->host.u = (p->host.u+1)%10;						
+    			break;
         }
     }
     
 	if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
 
-void add_tcp(int numb, uint64_t end) {
+void add_icm_measurement(struct sockaddr *sa, uint64_t end) {
+
+  if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
+
+    Node *p = head;    
+    while(p) {
+        if(strcmp(sa->sa_data, p->host.addr_icm.sa_data)) p = p->next;
+        else {
+          p->host.icm[ p->host.i ] = end - p->host.icm_time;
+          printf("icm pomiar: %d, wynik %lu\n", p->host.i, p->host.icm[ p->host.i ]);
+          p->host.i = (p->host.i+1)%10;
+          p->host.icm_time = 0;
+          break;
+        }
+    }
+    
+  if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
+}
+
+void add_tcp_measurement(int numb, uint64_t end) {
 
   if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
 
   Node *p = head;    
   while(p) {
-    if (p->host.tcp_numb != numb)
-      p = p->next;
+    if (p->host.tcp_numb != numb) p = p->next;
     else {
       if (end == 0)
         p->host.tcp_time = 0;
       else {
-        p->host.tcp[ p->host.t ] = (int) (end - p->host.tcp_time);
-        printf("add tcp: %d\n", p->host.tcp[ p->host.t ]);
+        p->host.tcp[ p->host.t ] = (end - p->host.tcp_time);
+        printf("tcp pomiar: %d, wynik %lu\n", p->host.t, p->host.tcp[ p->host.t ]);
         p->host.t = (p->host.t + 1) % 10;
-        p->host.tcp_time = 0;                
+        p->host.tcp_time = 0;
       }
       break;
     }

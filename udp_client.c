@@ -61,24 +61,23 @@ void *udp_client (void *arg) {
     if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
 
     Node *p = head;
-    // stack_print(&head);
     tab[0] = htobe64( gettime() );
     while(p) {
-      snd_len = sendto(sock, tab, len, 0, &p->host.addr_udp, rcva_len);
-      if (snd_len != len) syserr("partial / failed write");
-      printf("udp sendto: ");
-      print_ip_port(p->host.addr_udp);
+      if (p->host.is_udp) {
+        snd_len = sendto(sock, tab, len, 0, &p->host.addr_udp, rcva_len);
+        if (snd_len != len) syserr("partial / failed write");
+        // printf("udp sendto: ");
+        // print_ip_port(p->host.addr_udp);        
+      }
       p = p->next;
     }
 
     if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 
-    // printf("śpię...\n");
-    sleep(1);
+    sleep(measure_delay);
   }
 
-  if (close(sock) == -1)
-    syserr("close");
+  if (close(sock) == -1) syserr("close");
 
 }
 
@@ -97,15 +96,11 @@ void *udp_client_receive(void *arg) {
     len = recvfrom(sock, tab, sizeof(tab), flags, &addr, &rcva_len);    
     if (len < 0) syserr("error on datagram from client socket");
     else {
-      end = gettime();
-      printf("udp recvfr: ");
-      print_ip_port(addr);
-
-  	add_measurement(&addr, "udp", (int) (end - be64toh(tab[0])));
-
-		// printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
-		// printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
-
+    	add_udp_measurement(&addr, gettime() - be64toh(tab[0]));
+      // printf("udp recvfr: ");
+      // print_ip_port(addr);
+  		// printf("rcvd time: %" PRIu64 "\n", be64toh(tab[0]));
+  		// printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
     }
   }  
   return 0;

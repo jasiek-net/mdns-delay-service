@@ -42,7 +42,7 @@ void *m_dns_receive(void *arg) {
       if (ntohs(dns->q_count)) {  // we've got question over here!
         q = get_question(rcv_buf);
         for (i = 0; i < ntohs(dns->q_count); i++) {
-          printf("RCV Q name: %s, type: %d\n", q[i].name, ntohs(q[i].ques->qtype));
+          // printf("RCV Q name: %s, type: %d\n", q[i].name, ntohs(q[i].ques->qtype));
 
           if (create_answer(q[i].name, ntohs(q[i].ques->qtype), snd_buf, &len)) {
             // printf("wchodze\n");
@@ -54,8 +54,8 @@ void *m_dns_receive(void *arg) {
       } else if (ntohs(dns->ans_count)) { // we've got answer over here!
         a = get_answer(rcv_buf);
         for(i = 0; i < ntohs(dns->ans_count); i++) {
-          if (ntohs(a[i].resource->type) == T_PTR)
-              printf("RCV A name: %s, rdata: %s, type: %d, size: %d\n", a[i].name, a[i].rdata, ntohs(a[i].resource->type), ntohs(a[i].resource->data_len));
+          // if (ntohs(a[i].resource->type) == T_PTR)
+          //     printf("RCV A name: %s, rdata: %s, type: %d, size: %d\n", a[i].name, a[i].rdata, ntohs(a[i].resource->type), ntohs(a[i].resource->data_len));
 
           if (create_question(a[i].name, a[i].rdata, ntohs(a[i].resource->type), snd_buf, &len)) {
             snd_len = sendto(sock, snd_buf, len, flags, &mdns_addr, addr_len);

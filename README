@@ -274,3 +274,4 @@ M_DNS
 // na zapytanie o A dla moj-komputer._opoznienia._udp.local. odpowiadamy, że 192.168.1.42.
 
 - losowe opóżnienie
+- dodać usuwanie hostów, którzy nie odpowiadają!

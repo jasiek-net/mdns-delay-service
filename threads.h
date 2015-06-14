@@ -36,17 +36,18 @@ void drop_to_nobody();
 struct host_data {
 	uint32_t ip;
     struct sockaddr addr_udp;
+    struct sockaddr addr_icm;
     struct sockaddr addr_tcp;
-	int udp[10],
-		tcp[10],
-		icm[10],
-		u, t, i;
+	uint64_t udp[10],
+			 tcp[10],
+			 icm[10];
+	int	u, t, i;
 	int tcp_numb,
 		tcp_serv,
 		icm_seq;
 	uint64_t tcp_time,
 			 icm_time;
-	int is_tcp, is_udp;
+	int is_tcp, is_udp, is_icm;
 };
 
 typedef struct host_data stack_data; //stack data type - set for integers, modifiable
@@ -61,6 +62,8 @@ pthread_rwlock_t lock;
 pthread_rwlock_t lock_tcp;
 pthread_rwlock_t lock_telnet;
 socklen_t addr_len;
+struct sockaddr_in my_addr;
+
 int udp_port;
 int tcp_port;
 int telnet_port;
@@ -82,8 +85,10 @@ void stack_print(); //prints all the stack data
 void stack_clear(); //clears the stack of all elements
 //void stack_snoc(Node **node_head, stack_data d); //appends a node
 int stack_elem(struct sockaddr *sa); //checks for an element
-void add_measurement(struct sockaddr *sa, char *type, int result);
-void add_tcp(int numb, uint64_t end);
+void add_udp_measurement(struct sockaddr *sa, uint64_t result);
+void add_udp_measurement(struct sockaddr *sa, uint64_t result);
+
+void add_tcp_measurement(int numb, uint64_t end);
 void create_or_add(uint32_t ip, char *type);
 
 #endif
