@@ -281,7 +281,7 @@ void *icmp (void *arg) {
       p->host.icm_seq = (p->host.icm_seq + 1) % 65536;
       p->host.icm_time = start;
       icmp->icmp_seq = htons( p->host.icm_seq ); // sequential number
-      len = sendto(sock, (void*) icmp, icmp_len, 0, &p->host.addr, addr_len);
+      len = sendto(sock, (void*) icmp, icmp_len, 0, &p->host.addr_udp, addr_len);
       if (icmp_len != (ssize_t) len) syserr("partial / failed write");
       printf("wrote %zd bytes\n", len);
       p = p->next;

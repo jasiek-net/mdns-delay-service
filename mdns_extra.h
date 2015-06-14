@@ -65,7 +65,6 @@ int create_answer(unsigned char *query, int type, unsigned char *buf, ssize_t *l
 int create_question(unsigned char *name, unsigned char *rdata, int type, unsigned char *buf, ssize_t *len);
 
 void parse_msg(char * buf);
-void get_record(unsigned char *query, unsigned char *buf, ssize_t *len);
 u_char* ReadName(unsigned char* reader, unsigned char* buffer, int* count);
 
 

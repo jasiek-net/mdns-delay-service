@@ -93,12 +93,9 @@ void *mdns(void *arg) {
   if (pthread_create(&m_dns_receive_t, 0, m_dns_receive, &sock) != 0) syserr("pthread_create");
 
   ssize_t snd_len, len_udp, len_tcp;
-  get_record("_opoznienia._udp.local.", buf_udp, &len_udp); // 0 means query
-  create_answer("_ssh._tcp.local.", T_PTR, buf_tcp, &len_tcp); // 0 means query
+  create_question("_opoznienia._udp.local.", "x", 0, buf_udp, &len_udp);
+  create_answer("_ssh._tcp.local.", T_PTR, buf_tcp, &len_tcp);
 
-//  printf("size: %d\n", len);
-
- // parse_msg(msg);
   while(1) {
     snd_len = sendto(sock, buf_udp, len_udp, flags, &mdns_addr, addr_len);
     if (snd_len != len_udp) syserr("sendto");

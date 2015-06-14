@@ -34,7 +34,9 @@ void drop_to_nobody();
 #include <pthread.h>
 
 struct host_data {
-    struct sockaddr addr;
+	uint32_t ip;
+    struct sockaddr addr_udp;
+    struct sockaddr addr_tcp;
 	int udp[10],
 		tcp[10],
 		icm[10],
@@ -44,6 +46,7 @@ struct host_data {
 		icm_seq;
 	uint64_t tcp_time,
 			 icm_time;
+	int is_tcp, is_udp;
 };
 
 typedef struct host_data stack_data; //stack data type - set for integers, modifiable
@@ -59,6 +62,7 @@ pthread_rwlock_t lock_tcp;
 pthread_rwlock_t lock_telnet;
 socklen_t addr_len;
 int udp_port;
+int tcp_port;
 int telnet_port;
 int measure_delay;
 int telnet_delay;
@@ -80,6 +84,7 @@ void stack_clear(); //clears the stack of all elements
 int stack_elem(struct sockaddr *sa); //checks for an element
 void add_measurement(struct sockaddr *sa, char *type, int result);
 void add_tcp(int numb, uint64_t end);
+void create_or_add(uint32_t ip, char *type);
 
 #endif
 

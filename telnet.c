@@ -116,7 +116,7 @@ void *telnet_message(void *arg) {
     Node *p = head;
     struct result tab[size];
     while(p) {
-      tab[i].ip = inet_ntoa(((struct sockaddr_in *) &p->host.addr)->sin_addr);
+      tab[i].ip = inet_ntoa(((struct sockaddr_in *) &p->host.addr_udp)->sin_addr);
       tab[i].udp = ave( p->host.udp );
       tab[i].tcp = ave( p->host.tcp );
       tab[i].icm = ave( p->host.icm );

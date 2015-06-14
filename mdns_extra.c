@@ -107,50 +107,51 @@ void create_mdns_header(unsigned char *buf, int type) {
 int create_answer(unsigned char *query, int type, unsigned char *buf, ssize_t *len) {
   unsigned char *name, *rdata;
   struct R_DATA *resource = NULL;
-  *len = 0;
-    create_mdns_header(buf, 1);
-    name = (unsigned char *) &buf[sizeof(struct DNS_HEADER)];
-    aton(query, name);
-    resource = (struct R_DATA*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)name) + 1)]; //fill it
-    resource->type = htons( type ); //type of the query, A or PTR
-    resource->_class = htons(1); //its internet
-    resource->ttl = 0; // TTL in seconds
-    rdata = (unsigned char *) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)name) + 1) + sizeof(struct R_DATA)];
-    *len = sizeof(struct DNS_HEADER) + sizeof(struct R_DATA) + (strlen((const char*)name)+1);
+  create_mdns_header(buf, 1);
+  name = (unsigned char *) &buf[sizeof(struct DNS_HEADER)];
+  aton(query, name);
+  resource = (struct R_DATA*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)name) + 1)]; //fill it
+  resource->type = htons( type ); //type of the query, A or PTR
+  resource->_class = htons(1); //its internet
+  resource->ttl = 0; // TTL in seconds
+  rdata = (unsigned char *) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)name) + 1) + sizeof(struct R_DATA)];
+  *len = sizeof(struct DNS_HEADER) + sizeof(struct R_DATA) + (strlen((const char*)name) + 1);
 
-    if (type == T_PTR) {
-      if (!strcmp(query, opoznie))
-        aton(host_opoznie, rdata);
-      else if (!strcmp(query, ssh_tcp))
-        aton(host_ssh_tcp, rdata);
-      else
-        return 0;
-      
-      resource->data_len = htons( strlen((const char*)rdata) + 1 ); // the lenght of RR specific data in octets
-      *len += (strlen((const char*)rdata)+1);
-      return 1;
-  
-    } else if (type == T_A) {
-      memcpy(rdata, &my_addr.sin_addr, 4);  // copy my IP addr
-      resource->data_len = htons(4); // size of IP addr
-      *len += 4;
-      return 1;
-    } else
+  if (type == T_PTR) {
+    if (!strcmp(query, opoznie))
+      aton(host_opoznie, rdata);
+    else if (!strcmp(query, ssh_tcp))
+      aton(host_ssh_tcp, rdata);
+    else
       return 0;
+    
+    resource->data_len = htons( strlen((const char*)rdata) + 1 ); // the lenght of RR specific data in octets
+    *len += (strlen((const char*)rdata)+1);
+    return 1;
+
+  } else if (type == T_A) {
+    // printf("send ip: %lu\n", my_addr.sin_addr);
+    memcpy(rdata, &my_addr.sin_addr, 4);  // copy my IP addr
+    resource->data_len = htons(4); // size of IP addr
+    *len += 4;
+    return 1;
+  } else
+    return 0;
 }
 
 int create_question(unsigned char *name, unsigned char *rdata, int type, unsigned char *buf, ssize_t *len) {
-  if (type == T_A && (!strstr(name, opoznie) || !strstr(name, ssh_tcp))) {
-      long *p;
-      p=(long*)rdata;
+  if (type == T_A && (strstr(name, opoznie) || strstr(name, ssh_tcp))) {
+      uint32_t *p;
+      p = (uint32_t *) rdata;
       struct sockaddr_in a;
-      a.sin_addr.s_addr=(*p);
-      printf("RCV A name: %s, IPv4 address : %s\n", name, inet_ntoa(a.sin_addr));            
+      a.sin_addr.s_addr = (*p);
+      // printf("create_question: ip %lu\n", *p);
+      // printf("RCV A name: %s, IPv4 address : %s\n", name, inet_ntoa(a.sin_addr));            
 
-    if (!strstr(name, opoznie)) {
-      // add udp client rdata
-    } else {
-      // add tcp client
+    if (strstr(name, opoznie)) {
+      create_or_add(*p, "udp");
+    } else if (strstr(name, ssh_tcp)) {
+      create_or_add(*p, "tcp");
     }
     return 0;
   } else if (type == T_PTR && (!strcmp(name, opoznie) || !strcmp(name, ssh_tcp))) {
@@ -164,20 +165,18 @@ int create_question(unsigned char *name, unsigned char *rdata, int type, unsigne
       qinfo->qclass = htons(1);
       *len = sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION);
       return 1;
-    } else return 0;
-}
-
-
- void get_record(unsigned char *query, unsigned char *buf, ssize_t *len) {
-    unsigned char *qname;
-    create_mdns_header(buf, 0);
-    qname = (unsigned char*) &buf[sizeof(struct DNS_HEADER)];
-    aton(query, qname);
-    struct QUESTION *qinfo = NULL;
-    qinfo = (struct QUESTION*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
-    qinfo->qtype = htons( T_PTR );
-    qinfo->qclass = htons(1); // 1 for Internet
-    *len = sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION);
+    } else if (type == 0) { // first, multicast question
+      unsigned char *qname;
+      create_mdns_header(buf, 0);
+      qname = (unsigned char*) &buf[sizeof(struct DNS_HEADER)];
+      aton(name, qname);
+      struct QUESTION *qinfo = NULL;
+      qinfo = (struct QUESTION*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
+      qinfo->qtype = htons( T_PTR );
+      qinfo->qclass = htons(1); // 1 for Internet
+      *len = sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION);
+    }
+    return 0;
 }
 
 struct QUERY *get_question(char *buf) {

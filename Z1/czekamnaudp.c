@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
   snda_len = (socklen_t) sizeof(client_address);
   rcva_len = (socklen_t) sizeof(client_address);
   flags = 0; // we do not request anything special
+while(1) {
   len = recvfrom(sock, tab, sizeof(tab), flags, (struct sockaddr *) &client_address, &rcva_len);
   if (len < 0)
     syserr("error on datagram from client socket");
@@ -50,5 +51,7 @@ int main(int argc, char *argv[]) {
       syserr("error on sending datagram to client socket");
     printf("send time: %" PRIu64 "\n", be64toh(tab[1]));
   }
+  
+}
   return 0;
 }
