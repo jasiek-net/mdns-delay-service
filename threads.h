@@ -59,7 +59,6 @@ struct stack { //stack structure format
 
 Node *head; //pointer to stack head
 pthread_rwlock_t lock;
-pthread_rwlock_t lock_tcp;
 pthread_rwlock_t lock_telnet;
 socklen_t addr_len;
 struct sockaddr_in my_addr;

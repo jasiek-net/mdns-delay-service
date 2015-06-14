@@ -50,7 +50,7 @@ void *udp_client (void *arg) {
 
   ((struct sockaddr_in *) &addr)->sin_family = AF_INET; // IPv4
   ((struct sockaddr_in *) &addr)->sin_addr.s_addr = htonl(INADDR_ANY); // address IP
-  ((struct sockaddr_in *) &addr)->sin_port = htons(udp_port); // Port
+  ((struct sockaddr_in *) &addr)->sin_port = htons(0); // Port
 
   if (bind(sock, &addr, rcva_len) < 0) syserr("bind");
 

@@ -22,8 +22,8 @@ void *udp_server(void *arg) {
   
   sock = socket(AF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
   if (sock < 0) syserr("socket");
-  // after socket() call; we should close(sock) on any execution path;
-  // since all execution paths exit immediately, sock would be closed when program terminates
+  int one = 1;
+  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
 
   server_address.sin_family = AF_INET; // IPv4
   server_address.sin_addr.s_addr = htonl(INADDR_ANY); // listening on all interfaces

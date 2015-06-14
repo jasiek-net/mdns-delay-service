@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
     syserr("pthread_rwlock_init");
   if (pthread_rwlock_init(&lock_telnet, NULL) != 0)
     syserr("pthread_rwlock_init");
-  if (pthread_rwlock_init(&lock_tcp, NULL) != 0)
-    syserr("pthread_rwlock_init");
   head = NULL;
   addr_len = sizeof(struct sockaddr);
 
@@ -59,22 +57,21 @@ int main(int argc, char *argv[]) {
   pthread_t telnet_t;
   
   // SHOW TIME!
-  // if (pthread_create(&udp_server_t, 0, udp_server, NULL) != 0)
-  //   syserr("pthread_create");
-  if (pthread_create(&icm_client_t, 0, icm_client, NULL) != 0) syserr("pthread_create");
 
-  sleep(1);
-  if (pthread_create(&udp_client_t, 0, udp_client, NULL) != 0) syserr("pthread_create");
+  // if (pthread_create(&icm_client_t, 0, icm_client, NULL) != 0) syserr("pthread_create");
+
+  // sleep(1);
+  // if (pthread_create(&udp_server_t, 0, udp_server, NULL) != 0) syserr("pthread_create");
+
+  // if (pthread_create(&udp_client_t, 0, udp_client, NULL) != 0) syserr("pthread_create");
 
   if (pthread_create(&tcp_client_t, 0, tcp_client, NULL) != 0) syserr("pthread_create");
-
 
   mdns_delay = 2;
   if (pthread_create(&mdns_t, 0, mdns, NULL) != 0)
     syserr("pthread_create");
   
-  // if (pthread_create(&telnet_t, 0, telnet, NULL) != 0)
-  //   syserr("pthread_create");
+  // if (pthread_create(&telnet_t, 0, telnet, NULL) != 0) syserr("pthread_create");
 
  
   // pthread_t udp_client_t;

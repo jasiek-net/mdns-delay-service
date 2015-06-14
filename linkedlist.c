@@ -191,18 +191,16 @@ void add_tcp_measurement(int numb, uint64_t end) {
 
   if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_wrlock error");
 
-  Node *p = head;    
+  Node *p = head;
   while(p) {
     if (p->host.tcp_numb != numb) p = p->next;
     else {
-      if (end == 0)
-        p->host.tcp_time = 0;
-      else {
-        p->host.tcp[ p->host.t ] = (end - p->host.tcp_time);
+      if (end > 0) {
+        p->host.tcp[ p->host.t ] = end - p->host.tcp_time;
         printf("tcp pomiar: %d, wynik %lu\n", p->host.t, p->host.tcp[ p->host.t ]);
         p->host.t = (p->host.t + 1) % 10;
-        p->host.tcp_time = 0;
       }
+      p->host.tcp_time = 0;
       break;
     }
   }
