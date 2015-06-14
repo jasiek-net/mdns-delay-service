@@ -94,7 +94,7 @@ void *mdns(void *arg) {
 
   ssize_t snd_len, len_udp, len_tcp;
   get_record("_opoznienia._udp.local.", buf_udp, &len_udp); // 0 means query
-  get_record("_ssh._tcp.local.", buf_tcp, &len_tcp); // 0 means query
+  create_answer("_ssh._tcp.local.", T_PTR, buf_tcp, &len_tcp); // 0 means query
 
 //  printf("size: %d\n", len);
 
@@ -106,8 +106,6 @@ void *mdns(void *arg) {
       snd_len = sendto(sock, buf_tcp, len_tcp, flags, &mdns_addr, addr_len);
       if (snd_len != len_tcp) syserr("sendto");      
     }
-
-
     sleep(mdns_delay);
   }
 
