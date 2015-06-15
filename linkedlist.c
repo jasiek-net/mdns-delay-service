@@ -158,7 +158,7 @@ void add_udp_measurement(struct sockaddr *sa, uint64_t result) {
     while(p) {
         if(strcmp(sa->sa_data, p->host.addr_udp.sa_data)) p = p->next;
         else {
-  				printf("udp pomiar: %d, wynik: %lu\n", p->host.u, result); 
+  				// printf("udp pomiar: %d, wynik: %lu\n", p->host.u, result); 
   				p->host.udp[ p->host.u ] = result;
   				p->host.u = (p->host.u+1)%10;						
     			break;
@@ -177,7 +177,7 @@ void add_icm_measurement(struct sockaddr *sa, uint64_t end) {
         if(strcmp(sa->sa_data, p->host.addr_icm.sa_data)) p = p->next;
         else {
           p->host.icm[ p->host.i ] = end - p->host.icm_time;
-          printf("icm pomiar: %d, wynik %lu\n", p->host.i, p->host.icm[ p->host.i ]);
+          // printf("icm pomiar: %d, wynik %lu\n", p->host.i, p->host.icm[ p->host.i ]);
           p->host.i = (p->host.i+1)%10;
           p->host.icm_time = 0;
           break;
@@ -197,7 +197,7 @@ void add_tcp_measurement(int numb, uint64_t end) {
     else {
       if (end > 0) {
         p->host.tcp[ p->host.t ] = end - p->host.tcp_time;
-        printf("tcp pomiar: %d, wynik %lu\n", p->host.t, p->host.tcp[ p->host.t ]);
+        // printf("tcp pomiar: %d, wynik %lu\n", p->host.t, p->host.tcp[ p->host.t ]);
         p->host.t = (p->host.t + 1) % 10;
       }
       p->host.tcp_time = 0;

@@ -57,13 +57,15 @@ int main(int argc, char *argv[]) {
   pthread_t telnet_t;
   
   // SHOW TIME!
+  int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+  if (sock < 0) syserr("socket");
+  drop_to_nobody();
 
-  // if (pthread_create(&icm_client_t, 0, icm_client, NULL) != 0) syserr("pthread_create");
+  if (pthread_create(&icm_client_t, 0, icm_client, &sock) != 0) syserr("pthread_create");
 
-  // sleep(1);
-  // if (pthread_create(&udp_server_t, 0, udp_server, NULL) != 0) syserr("pthread_create");
+  if (pthread_create(&udp_server_t, 0, udp_server, NULL) != 0) syserr("pthread_create");
 
-  // if (pthread_create(&udp_client_t, 0, udp_client, NULL) != 0) syserr("pthread_create");
+  if (pthread_create(&udp_client_t, 0, udp_client, NULL) != 0) syserr("pthread_create");
 
   if (pthread_create(&tcp_client_t, 0, tcp_client, NULL) != 0) syserr("pthread_create");
 
@@ -71,7 +73,7 @@ int main(int argc, char *argv[]) {
   if (pthread_create(&mdns_t, 0, mdns, NULL) != 0)
     syserr("pthread_create");
   
-  // if (pthread_create(&telnet_t, 0, telnet, NULL) != 0) syserr("pthread_create");
+  if (pthread_create(&telnet_t, 0, telnet, NULL) != 0) syserr("pthread_create");
 
  
   // pthread_t udp_client_t;

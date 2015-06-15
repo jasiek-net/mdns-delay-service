@@ -78,7 +78,7 @@ void *tcp_client(void *arg) {
 	while(1) {
 
     if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
-
+    
     Node *p = head;
     while(p) {
     	if (p->host.is_tcp && !p->host.tcp_time) {
