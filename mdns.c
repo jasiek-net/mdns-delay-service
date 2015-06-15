@@ -93,8 +93,8 @@ void *mdns(void *arg) {
   if (pthread_create(&m_dns_receive_t, 0, m_dns_receive, &sock) != 0) syserr("pthread_create");
 
   ssize_t snd_len, len_udp, len_tcp;
-  create_question("_opoznienia._udp.local.", "x", 0, buf_udp, &len_udp);
-  create_answer("_ssh._tcp.local.", T_PTR, buf_tcp, &len_tcp);
+  create_question((unsigned char *) "_opoznienia._udp.local.", (unsigned char *) "x", 0, buf_udp, &len_udp);
+  create_answer((unsigned char *) "_ssh._tcp.local.", T_PTR, buf_tcp, &len_tcp);
 
   while(1) {
     stack_check();

@@ -144,7 +144,6 @@ void *telnet(void *arg) {
   int offset[MAX_SERVERS];
   struct sockaddr server;
   char buf[BUF_SIZE];
-  size_t length;
   ssize_t rval;
   int msgsock, activeClients, i, ret;
 
@@ -208,7 +207,13 @@ void *telnet(void *arg) {
               client[i].fd = msgsock;
               ret = snprintf(buf, sizeof(buf), "\377\373\003\377\373\001");
               if (ret != 6) syserr("snprintf");
-              write(client[i].fd, buf, ret);
+              rval = write(client[i].fd, buf, ret);
+              if (rval < 0) {
+                perror("Writing stream message");
+                if (close(client[i].fd) < 0) perror("close");
+                client[i].fd = -1;
+                activeClients -= 1;
+              }
               activeClients += 1;
               break;
             }

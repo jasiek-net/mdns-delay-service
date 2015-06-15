@@ -33,7 +33,7 @@ void *icmp_receive(void *arg) {
   char rcv_buffer[BSIZE];
   
   ssize_t ip_header_len = 0;
-  ssize_t data_len = 0;
+  // ssize_t data_len = 0;
   ssize_t icmp_len = 0;
   ssize_t len;
   
@@ -53,7 +53,7 @@ void *icmp_receive(void *arg) {
     if (icmp_len >= ICMP_HEADER_LEN)
     if (icmp->icmp_type == ICMP_ECHOREPLY)
     if (ntohs(icmp->icmp_id) == 0x13) {
-      data_len = len - ip_header_len - ICMP_HEADER_LEN;
+      // data_len = len - ip_header_len - ICMP_HEADER_LEN;
       // printf("icm recvfr: ");
       // print_ip_port(rcv_addr);
       add_icm_measurement(&rcv_addr, gettime()); 
@@ -63,16 +63,11 @@ void *icmp_receive(void *arg) {
 
 void *icm_client(void *arg) {
   int sock = *(int *) arg;
-
-  struct addrinfo addr_hints;
-  struct addrinfo *addr_result;
-  struct sockaddr_in send_addr;
   
   struct icmp* icmp;
   
   char send_buffer[BSIZE];
   
-  int err = 0;
   ssize_t data_len = 0;
   ssize_t icmp_len = 0;
   ssize_t len = 0;

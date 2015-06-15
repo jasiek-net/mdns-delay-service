@@ -58,13 +58,12 @@ struct QUERY {
 void set_my_ip();
 void set_my_host();
 
-struct RES_RECORD *get_answer(char *buf);
-struct QUERY *get_question(char *buf);
+struct RES_RECORD *get_answer(unsigned char *buf);
+struct QUERY *get_question(unsigned char *buf);
 
 int create_answer(unsigned char *query, int type, unsigned char *buf, ssize_t *len);
 int create_question(unsigned char *name, unsigned char *rdata, int type, unsigned char *buf, ssize_t *len);
 
-void parse_msg(char * buf);
 u_char* ReadName(unsigned char* reader, unsigned char* buffer, int* count);
 
 

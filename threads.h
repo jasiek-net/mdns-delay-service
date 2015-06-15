@@ -85,8 +85,7 @@ void stack_check();
 //void stack_snoc(Node **node_head, stack_data d); //appends a node
 int stack_elem(struct sockaddr *sa); //checks for an element
 void add_udp_measurement(struct sockaddr *sa, uint64_t result);
-void add_udp_measurement(struct sockaddr *sa, uint64_t result);
-
+void add_icm_measurement(struct sockaddr *sa, uint64_t result);
 void add_tcp_measurement(int numb, uint64_t end);
 void create_or_add(uint32_t ip, char *type);
 

@@ -88,7 +88,7 @@ void *udp_client_receive(void *arg) {
   struct sockaddr addr;
   socklen_t rcva_len;
   ssize_t len;
-  uint64_t tab[2], end;
+  uint64_t tab[2];
   
   rcva_len = (socklen_t) sizeof(addr);
 
