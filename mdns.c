@@ -97,6 +97,7 @@ void *mdns(void *arg) {
   create_answer("_ssh._tcp.local.", T_PTR, buf_tcp, &len_tcp);
 
   while(1) {
+    stack_check();
     snd_len = sendto(sock, buf_udp, len_udp, flags, &mdns_addr, addr_len);
     if (snd_len != len_udp) syserr("sendto");
     if (ssh_multicast) {

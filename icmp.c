@@ -21,15 +21,6 @@
 #define ICMP_HEADER_LEN 8
 #define NOBODY_UID_GID 99
 
-/*
-Należy zaimplementować pomiar na podstawie czasu odpowiedzi na pakiety ICMP Echo Request.
-W pakietach ICMP należy:
-=> wpisać w polu identyfikator wartość 0x13.
-=> W części data należy w pierwszych 24 bitach umieścić swój numer indeksu (zakodowany w BCD, w kolejności bajtów bigendian),
- a w ostatnich 8 - numer grupy. Należy zadbać o sensowną obsługę numerów sekwencyjnych. Program `opoznienia` nie powinien
-odpowiadać na zapytania ICMP Echo Request. Zakładamy, że to potrafi system operacyjny.
-*/
-
 void *icmp_receive(void *arg) {
   int sock = *(int *) arg;
 
@@ -104,12 +95,11 @@ void *icm_client(void *arg) {
   if (pthread_create(&icmp_receive_t, 0, icmp_receive, &sock) != 0) syserr("pthread_create");
 
   while(1) {
-    if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
+    if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
 
     Node *p = head;
     while(p) {
       if (p->host.is_icm) {
-        // p->host.icm_seq = (p->host.icm_seq + 1) % 65536;
         p->host.icm_time = gettime();
         len = sendto(sock, (void*) icmp, icmp_len, 0, &p->host.addr_icm, addr_len);
         if (icmp_len != (ssize_t) len) syserr("partial / failed write");

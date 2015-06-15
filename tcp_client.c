@@ -54,7 +54,7 @@ void tcp_client_recieve() {
 			      if (getsockopt(server[i].fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) syserr("getsockopt");
 			      if (valopt) {
 			      	// printf("Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
-			      	add_tcp_measurement(i, 0);
+			      	add_tcp_measurement(i, 0ul);
 			      } else {
 			      	add_tcp_measurement(i, gettime());
 			      }
@@ -78,7 +78,7 @@ void *tcp_client(void *arg) {
 	while(1) {
 
     if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
-    
+
     Node *p = head;
     while(p) {
     	if (p->host.is_tcp && !p->host.tcp_time) {

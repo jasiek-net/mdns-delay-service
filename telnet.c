@@ -29,7 +29,7 @@
 
 struct result {
   int udp, tcp, icm, ave;
-  char *ip;
+  char ip[15];
 };
 
 int comp(const void * elem1, const void * elem2) {
@@ -40,8 +40,9 @@ int comp(const void * elem1, const void * elem2) {
     return 0;
 }
 
-int ave(int *t) {
-  int i, k = 0, d = 10;
+int ave(uint64_t *t) {
+  int i, d = 10;
+  uint64_t k = 0;
   for (i = 0; i < 10; i++) {
     if (t[i] == 0) d--;
     else k += t[i];
@@ -74,15 +75,16 @@ int msg_size;
 void *telnet_message(void *arg) {
 
   while(1) {
-    int i = 0;
     int size = stack_len();
     struct result tab[size];
 
     if (pthread_rwlock_rdlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
 
     Node *p = head;
+    int i = 0;
     while(p) {
-      tab[i].ip = inet_ntoa(((struct sockaddr_in *) &p->host.addr_udp)->sin_addr);
+      // tab[i].ip = memset(strlen(inet_ntoa(((struct sockaddr_in *) &p->host.addr_icm)->sin_addr)));
+      strcpy(tab[i].ip, inet_ntoa(((struct sockaddr_in *) &p->host.addr_icm)->sin_addr));
       tab[i].udp = ave( p->host.udp );
       tab[i].tcp = ave( p->host.tcp );
       tab[i].icm = ave( p->host.icm );
@@ -114,10 +116,13 @@ void *telnet_message(void *arg) {
       off += 16;
       off += offave;
       memcpy((char *)(msg + off), itoa(tab[i].udp), size_int(tab[i].udp));
+      // printf("udp: %s\n", itoa(tab[i].udp));
       off += size_int(tab[i].udp) + 1;
       memcpy((char *)(msg + off), itoa(tab[i].tcp), size_int(tab[i].tcp));
+      // printf("tcp: %s\n", itoa(tab[i].tcp));
       off += size_int(tab[i].tcp) + 1;
       memcpy((char *)(msg + off), itoa(tab[i].icm), size_int(tab[i].icm));
+      // printf("icm: %s\n", itoa(tab[i].icm));
       off = offright;
       offright += 80;
       if (offave) offave--;
@@ -172,7 +177,7 @@ void *telnet(void *arg) {
     ret = poll(client, MAX_SERVERS, telnet_delay*1000);
     if (ret < 0) syserr("poll");
     else if (ret == 0) {
-      printf("waiting...\n");
+      // printf("waiting...\n");
       for (i = 1; i < MAX_SERVERS; ++i) {
         if (client[i].fd != -1) {
           int size = 0;

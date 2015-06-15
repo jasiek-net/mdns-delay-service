@@ -27,16 +27,43 @@ void init_host(struct host_data * h) {
 	memset((*h).tcp, 0, sizeof((*h).tcp));
 	memset((*h).icm, 0, sizeof((*h).icm));
     (*h).tcp_time = 0;
-    (*h).tcp_serv = 1;
     (*h).tcp_numb = 0;
     (*h).icm_time = 0;
     (*h).icm_seq = 0;
     (*h).is_tcp = 0;
     (*h).is_udp = 0;
     (*h).is_icm = 0;
-
-
 } 
+
+void stack_check() {
+  if (pthread_rwlock_wrlock(&lock) != 0) syserr("pthread_rwlock_rdlock error");
+
+  Node *tmp;
+  Node *p = head;
+  while(p && p->next) {
+      if (!p->next->host.check) {
+        tmp = p->next;
+        p->next = tmp->next;
+        free(tmp);
+      } else
+        p = p->next;
+  }
+  if (head && !head->host.check) {
+    tmp = head;
+    head = head->next;
+    free(tmp);
+  }
+
+  p = head;
+  while(p) {
+    p->host.check = 0;
+    p = p->next;
+  }  
+  if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
+
+  stack_print();
+
+}
 
 void create_or_add(uint32_t ip, char *type) {
   struct sockaddr_in a;
@@ -61,7 +88,7 @@ void create_or_add(uint32_t ip, char *type) {
     edit->host.ip = ip;
     edit->next = head;
     head = edit;
-    printf("ADD NEW: %s, IPv4 address : %s\n", type, inet_ntoa(a.sin_addr));
+    // printf("ADD NEW: %s, IPv4 address : %s\n", type, inet_ntoa(a.sin_addr));
   } else
     edit = p;
 
@@ -70,22 +97,23 @@ void create_or_add(uint32_t ip, char *type) {
     a.sin_port = htons(0);
     edit->host.is_icm = 1;
     edit->host.addr_icm = *(struct sockaddr *) &a;
-    printf("add icm: ");
-    print_ip_port(*(struct sockaddr *) &a);
+    // printf("add icm: ");
+    // print_ip_port(*(struct sockaddr *) &a);
   }
   if (!strcmp("udp", type) && !edit->host.is_udp) {
     a.sin_port = htons(udp_port);
     edit->host.addr_udp = *(struct sockaddr *) &a;
     edit->host.is_udp = 1;
-    printf("add udp: ");
-    print_ip_port(*(struct sockaddr *) &a);
+    // printf("add udp: ");
+    // print_ip_port(*(struct sockaddr *) &a);
   } else if (!strcmp("tcp", type) && !edit->host.is_tcp) {
     a.sin_port = htons(tcp_port);
     edit->host.addr_tcp = *(struct sockaddr *) &a;
     edit->host.is_tcp = 1;
-    printf("add tcp: ");
-    print_ip_port(*(struct sockaddr *) &a);
+    // printf("add tcp: ");
+    // print_ip_port(*(struct sockaddr *) &a);
   }
+  edit->host.check = 1;
 
   if (pthread_rwlock_unlock(&lock) != 0) syserr("pthred_rwlock_unlock error");
 }
@@ -179,7 +207,6 @@ void add_icm_measurement(struct sockaddr *sa, uint64_t end) {
           p->host.icm[ p->host.i ] = end - p->host.icm_time;
           // printf("icm pomiar: %d, wynik %lu\n", p->host.i, p->host.icm[ p->host.i ]);
           p->host.i = (p->host.i+1)%10;
-          p->host.icm_time = 0;
           break;
         }
     }

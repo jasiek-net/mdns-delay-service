@@ -43,11 +43,11 @@ struct host_data {
 			 icm[10];
 	int	u, t, i;
 	int tcp_numb,
-		tcp_serv,
 		icm_seq;
 	uint64_t tcp_time,
 			 icm_time;
 	int is_tcp, is_udp, is_icm;
+	int check;
 };
 
 typedef struct host_data stack_data; //stack data type - set for integers, modifiable
@@ -79,9 +79,9 @@ int ssh_multicast;
 
 int stack_len(); //stack length
 void stack_push(struct sockaddr addr); //pushes a value d onto the stack
-stack_data stack_pop(); //removes the head from the stack & returns its value
 void stack_print(); //prints all the stack data
 void stack_clear(); //clears the stack of all elements
+void stack_check();
 //void stack_snoc(Node **node_head, stack_data d); //appends a node
 int stack_elem(struct sockaddr *sa); //checks for an element
 void add_udp_measurement(struct sockaddr *sa, uint64_t result);
