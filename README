@@ -1,22 +1,22 @@
 Przydatne funkcje znajdują się w pliku mdns_extra.c, serwer i klient mdns są w pliku mdns.c
 
-**struct RES_RECORD *get_answer(unsigned char *buf);**
+struct RES_RECORD *get_answer(unsigned char *buf);
 Przekazujemy funkcji bufor odebrany przez recvfrom (sprawdzamy najpierw czy pakiet mdns
 zawiera pytania czy odpowiedzi, robimy to rzutując bufor na nagłówek mdns i sprawdzając
 liczebność pól q_count i ans_ count).
 Funkcja zwraca tablicę struktur RES_RECORD ze sparsowanymi polami, trzeba ją na końcu
 zdezalokować free().
 
-**struct QUERY *get_question(char *buf);**
+struct QUERY *get_question(char *buf);
 Analogicznie, tylko dla zapytań mdns
-**
-int create_answer(char *query, int type, char *buf, ssize_t *len);**
+
+int create_answer(char *query, int type, char *buf, ssize_t *len);
 Tworzy nam jedną odpowiedź na pytanie query, np. na "_opoznienia._udp.local." stworzy
 odpowiedź "moj-komputer._opoznienia._udp.local." itd. Potem przekonwertuje odpowiedź do
 formatu pakietów mdns i umieści w parametrze buf, gotową do wysłania (długość wiadomości
 będzie na zmiennej len)
 
-**int create_question(char *name, char *rdata, int type, char *buf, ssize_t *len);**
+int create_question(char *name, char *rdata, int type, char *buf, ssize_t *len);
 Analogicznie do create_answer tylko przekazujemy i pytanie (name) i odpowiedź (rdata).
 Funkcja albo tworzy odpowiedź albo (jeśli to odpowiedź na pytanie typu A i dostajemy adres
 IP) dodaje nowego hosta do listy.
